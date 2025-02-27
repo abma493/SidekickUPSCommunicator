@@ -1,12 +1,13 @@
 from driver import Driver
+import asyncio
 from threading import Thread
 from terminal import ScreenApp
 from logger import Logger
 
 def load_driver():
 	driver = Driver()
-	driver.init()
-	driver.listen()
+	asyncio.run(driver.init())
+	asyncio.run(driver.listen())
 
 
 def load_ui():

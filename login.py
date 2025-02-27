@@ -1,56 +1,75 @@
-from selenium import webdriver
-from selenium.webdriver.firefox.options import Options
-from selenium.webdriver.firefox.service import Service as FirefoxService
-from webdriver_manager.firefox import GeckoDriverManager
+import asyncio
 from common_imports import *
-from logger import Logger
+from playwright.async_api import async_playwright, TimeoutError as PlaywrightTimeoutError
+from VertivCommunicator.logger import Logger
 
-
-# Selenium driver set up
-def setup(web: str):
-    driver = webdriver.Firefox(service=FirefoxService(GeckoDriverManager().install()))
+# Playwright setup function
+async def setup(web: str):
     try:
-        driver.get(web)
-    except WebDriverException as e:
-        Logger.log(f"Failed to load page: {e}")
-        return None, None
+        playwright = await async_playwright().start()
+        browser = await playwright.firefox.launch(headless=False)
+        context = await browser.new_context() 
+        page = await context.new_page()
+        
+        try:
+            await page.goto(web, timeout=default_timeout)
+        except PlaywrightTimeoutError as e:
+            Logger.log(f"Failed to load page: {e}")
+            await browser.close()
+            await playwright.stop()
+            return None, None, None
+        
+        # Wait for body to ensure page is loaded
+        try:
+            await page.wait_for_selector("body", timeout=default_timeout)
+        except PlaywrightTimeoutError:
+            Logger.log("Page failed to load completely.")
+            await browser.close()
+            await playwright.stop()
+            return None, None, None
+            
+        return page, browser, playwright
+        
+    except Exception as e:
+        Logger.log(f"Error during setup: {e}")
+        return None, None, None
 
+# Login function
+async def login(page, user: str, passwd: str) -> bool:
     try:
-        wait = WebDriverWait(driver, default_timeout)
-        wait.until(EC.presence_of_all_elements_located((By.TAG_NAME, "body")))
-    except TimeoutException:
-        Logger.log("Page failed to load completely.")
-        driver.quit()
-        return None, None
-
-    return driver, wait
-
-
-# Once a web session has been established, log in
-def login(wait: WebDriverWait, driver, user : str, passwd : str) -> bool:	
-
-	try:
-		# Username in
-		user_field = wait.until(EC.element_to_be_clickable((By.ID,"username")))
-		user_field.clear()
-		
-		# Password in
-		pswd_field = wait.until(EC.element_to_be_clickable((By.ID,"password")))
-		pswd_field.clear()
-		user_field.send_keys(user)
-		pswd_field.send_keys(passwd)
-		# credential verification / login
-		login_b = wait.until(EC.element_to_be_clickable((By.ID, "login")))
-		login_b.click()
-
-		sleep(mini_wait)
-		try:
-			login_err = driver.find_element(By.ID, "loginError")
-			if login_err.is_displayed():
-				return False
-		except NoSuchElementException:
-			return True
-		
-	except TimeoutException:
-		Logger.log("Login failed - Timeout while parsing elements\nCheck your network/VPN.")
-		return False
+        # Username field
+        user_field = await page.wait_for_selector("#username", state="visible", timeout=default_timeout)
+        await user_field.click()
+        await user_field.fill("")  # Clear the field
+        
+        # Password field
+        pswd_field = await page.wait_for_selector("#password", state="visible", timeout=default_timeout)
+        await pswd_field.click()
+        await pswd_field.fill("")  # Clear the field
+        
+        # Enter credentials
+        await user_field.fill(user)
+        await pswd_field.fill(passwd)
+        
+        # Click login button
+        login_button = await page.wait_for_selector("#login", state="visible", timeout=default_timeout)
+        await login_button.click()
+        
+        # Wait a bit after clicking login
+        await asyncio.sleep(mini_wait)
+        
+        # Check for login error
+        login_error = await page.query_selector("#loginError")
+        if login_error:
+            is_visible = await login_error.is_visible()
+            if is_visible:
+                return False
+        
+        return True
+        
+    except PlaywrightTimeoutError:
+        Logger.log("Login failed - Timeout while parsing elements\nCheck your network/VPN.")
+        return False
+    except Exception as e:
+        Logger.log(f"Login failed with error: {e}")
+        return False
