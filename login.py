@@ -10,7 +10,6 @@ async def setup(web: str):
         browser = await playwright.firefox.launch(headless=False)
         context = await browser.new_context() 
         page = await context.new_page()
-        
         try:
             await page.goto(web, timeout=default_timeout)
         except PlaywrightTimeoutError as e:

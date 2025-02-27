@@ -66,7 +66,6 @@ class BaseScreen(Screen):
     # Using Textual's work decorator with coroutine=True to run as an async worker
     @work(exclusive=True)
     async def process_login_async(self):
-        """Process login using asyncio instead of threads"""
         Logger.log("Attempting login...")
         
         inputs = {
@@ -82,9 +81,11 @@ class BaseScreen(Screen):
         async def handle_login_flow() -> dict:
             # Put login data in queue
             comm_queue.put(inputs)
+            Logger.log("Put creds in queue...")
             
             # Signal driver to process login
             sem_driver.release()
+            Logger.log(f"sem_driver is {sem_driver._value}")
             # Wait for driver to complete login 
             # (prevent blocking the event loop/ only this coroutine waits, not entire program)
             await asyncio.to_thread(sem_UI.acquire)

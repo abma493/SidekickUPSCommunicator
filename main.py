@@ -1,33 +1,33 @@
-from driver import Driver
 import asyncio
-from threading import Thread
+from driver import Driver
 from terminal import ScreenApp
 from logger import Logger
+import threading
 
-def load_driver():
-	driver = Driver()
-	asyncio.run(driver.init())
-	asyncio.run(driver.listen())
+async def async_load_driver():
+    driver = Driver()
+    await driver.init()
+    await driver.listen()
+    Logger.log("Driver loaded OK.")
 
-
-def load_ui():
+def run_ui():
     app = ScreenApp()
     app.run()
+    Logger.log("UI loaded OK.")
 
-def main():
-	Logger.configure(log_file="app.log", console=False, level="INFO")
-	Logger.log("Loading driver and UI threads...")
-	driver_thread = Thread(target=load_driver)
-	ui_thread = Thread(target=load_ui)
-	
-	driver_thread.start()
-	Logger.log("Driver loaded OK.")
-	ui_thread.start()
-	Logger.log("UI loaded OK.")
+async def main():
+    Logger.configure(log_file="app.log", console=False, level="INFO")
+    Logger.log("Loading driver and UI threads...")
 
-	driver_thread.join()
-	ui_thread.join()
+    # Create a thread for the UI
+    ui_thread = threading.Thread(target=run_ui)
+    ui_thread.start()
 
+    # Run the driver in the asyncio event loop
+    await async_load_driver()
+
+    # Wait for UI thread to complete
+    ui_thread.join()
 
 if __name__ == '__main__':
-	main()
+    asyncio.run(main())

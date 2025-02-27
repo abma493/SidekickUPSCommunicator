@@ -1,10 +1,11 @@
 from playwright.async_api import Page, expect
 import asyncio
 
-class IP_Opts:
+class NetworkOptions:
     # Folder traversal (Config -> Ntwk -> IPv4)
-    def __init__(self, page: Page):
+    def __init__(self, page: Page=None):
         self.page = page
+        self._in_edit_mode = False
 
     async def load_network_folder(self):
         # Switch to default content (not needed in Playwright as it handles frames differently)
@@ -43,10 +44,51 @@ class IP_Opts:
             submit_button = await detail_frame.wait_for_selector("#submitButton")
             await submit_button.click()
 
+
+    async def get_IP(self):
+        # Switch to the detail area frame
+        detail_frame = self.page.frame("detailArea")
+        detail_frame = await self.ensure_edit_mode(detail_frame)
+
+        # Find the IP field
+        ip_field = await detail_frame.wait_for_selector("#str6139")
+
+        # Get the current value from the IP field
+        current_ip = await ip_field.input_value()
+        return current_ip
+    
+    async def get_subnet(self):
+        # Switch to the detail area frame
+        detail_frame = self.page.frame("detailArea")
+        
+        # Click edit button
+        detail_frame = await self.ensure_edit_mode(detail_frame)
+        # Find the IP field
+        subnet_field = await detail_frame.wait_for_selector("#str6140")
+
+        # Get the current value from the IP field
+        current_subnet = await subnet_field.input_value()
+        return current_subnet      
+    
+
+    async def ensure_edit_mode(self, detail_frame):
+        """
+        Helper to ensure we're in edit mode for the current frame.
+        Uses a class variable to track if we've already clicked edit.
+        """
+        # Use a class variable to track edit mode state
+        if not hasattr(self, '_in_edit_mode') or not self._in_edit_mode:
+            # Click edit button if not already in edit mode
+            edit_button = await detail_frame.wait_for_selector("#editButton")
+            await edit_button.click()
+            self._in_edit_mode = True
+        
+        return detail_frame
+
     async def enable_dhcp(self):
         try:
             detail_frame = self.page.frame("detailArea")
-            
+            detail_frame = await self.ensure_edit_mode(detail_frame)
             # Playwright's approach to dropdown selection
             select_element = await detail_frame.wait_for_selector("#enum6138")
             await select_element.select_option(value="0")
@@ -57,8 +99,14 @@ class IP_Opts:
             print(f'DHCP enable operation failed: {e}')
 
     async def get_dhcp(self):
-        # Placeholder for future implementation
-        pass
+        try:
+            detail_frame = self.page.frame("detailArea")
+            detail_frame = await self.ensure_edit_mode(detail_frame)
+            select_element = await detail_frame.wait_for_selector("#enum6138")
+            current_value = await select_element.evaluate("el => el.value")
+            return current_value == "0"
+        except Exception as e:
+            print(f"Error getting DHCP status: {e}")
 
     async def isset_IPv4(self) -> bool:
         detail_frame = self.page.frame("detailArea")

@@ -1,7 +1,8 @@
 from common_term import *
+import asyncio
 from syncprims import queue_cond, comm_queue, sem_UI
 from QuitScreen import QuitScreen
-from ip_opts import IP_Opts
+from ntwk_ops import NetworkOptions
 
 class ModNetworkScreen(ModalScreen):
     
@@ -12,42 +13,56 @@ class ModNetworkScreen(ModalScreen):
     ]
     dhcp_stat: bool = False
     current_ip: str = ""
+    current_subnet: str = ""
 
-    def _on_mount(self):
-        IP_Opts.load_network_folder()
-        self.pre_populate()
+    async def _on_mount(self):
+        NetworkOptions.load_network_folder(self)
 
-    
-    def pre_populate(self):
+        response_ready = asyncio.Event()
+
+        async def pre_populate(self):
+            
+            ip = asyncio.create_task(pre_populate_helper("GET_IP"))
+
+            dhcp = asyncio.create_task(pre_populate_helper("GET_DHCP"))
+            
+            subnet = asyncio.create_task(pre_populate_helper("GET_SUBNET"))
+            
+            # signal completion
+            response_ready.set()
+            return ip, dhcp, subnet
         
-        request_ip = {
-                        'request': 'GET_IP',
-                        'message': None,
-                    }
-        
-        request_dhcp = {
-                        'request': 'GET_DHCP',
-                        'message': None
-        }
+        task = asyncio.create_task(pre_populate())
 
-        comm_queue.put(request_ip)
-        comm_queue.put(request_dhcp)
-        queue_cond.notify()
+        # await for completion
+        await response_ready.wait()
+        ip, dhcp, subnet = await task
 
-        # HERE I need to now retrieve the queue from the request
-        sem_UI.acquire() # 1 -> 0
-
-        ip = dict(comm_queue.get()).get("message")
-        dhcp = dict(comm_queue.get()).get("message")
-        self.dhcp_stat = dhcp
         self.current_ip = ip
+        self.current_subnet = subnet
+        self.dhcp_stat: bool = dhcp 
+
+        # send a request and receive a response
+        async def pre_populate_helper(self, request_type: str):
+            request = {
+                                'request': request_type,
+                                'message': None
+            } 
+
+            comm_queue.put(request)
+            with queue_cond:
+                queue_cond.notify()
+            
+            await asyncio.to_thread(sem_UI.acquire) # 1 -> 0
+            return dict(comm_queue.get()).get("message")
+
 
 
     def compose(self) -> ComposeResult:
         yield Grid(
             Container(
                 Label("IP Modification Options"),
-                Checkbox("Set DHCP On", value=self.dhcp_stat, id="dhcp-checkbox"), #needs to update from website
+                Checkbox("Set DHCP On", value=self.dhcp_stat, id="dhcp-checkbox"), 
                 Horizontal(
                     Static("IP address:", id="ip-label"),
                     Input(placeholder="IP address", id="ip-field"),
@@ -56,6 +71,10 @@ class ModNetworkScreen(ModalScreen):
                     Static("Subnet mask:", id="subnet-label"),
                     Input(placeholder="Subnet mask", id="subnet-mask-field"),
                 id="subnet-field-container"),
+                Vertical(
+                        Static(self.current_ip, id="current-ip"),
+                        Static(self.current_subnet, id="current-subnet"),
+                id="current-network-settings"),
             id="configurations"),
             ListView(id="devices-update"),
             Horizontal(
@@ -77,3 +96,17 @@ class ModNetworkScreen(ModalScreen):
         if is_checked:
             pass
         
+
+
+class ScreenApp(App):
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+    def on_mount(self) -> None:
+        self.push_screen(ModNetworkScreen())
+
+
+if __name__ == "__main__":
+    app = ScreenApp()
+    app.run()

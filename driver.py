@@ -1,5 +1,6 @@
 import asyncio
 from login import setup, login
+from ntwk_ops import NetworkOptions
 from syncprims import sem_driver, sem_UI, comm_queue, queue_cond
 from common_imports import *
 from enum import Enum, auto
@@ -12,8 +13,11 @@ class Request(Enum):
     QUIT = auto()
     GET_IP = auto()
     SET_IP = auto()
+    GET_SUBNET = auto()
+    SET_SUBNET = auto()
     GET_DHCP = auto()
     SET_DHCP = auto()
+    
 
 
 class Driver(): 
@@ -21,14 +25,16 @@ class Driver():
         self.page = None
         self.browser = None
         self.playwright = None
+        self.networkops = NetworkOptions()
 
     # Controller will defer connection and login to login.py
     async def init(self):
-
+        Logger.log("HELLO!")
+        Logger.log(f"sem_driver at init {sem_driver._value}")
         sem_driver.acquire()
         credentials: dict = comm_queue.get()
         sem_driver.release()
-
+        Logger.log(f"sem_driver at init (after release) {sem_driver._value}")
         await self.establish_connect(credentials)
         await self.authenticate(credentials)    
 
@@ -64,8 +70,9 @@ class Driver():
         # Setup the browser connection
         
         while True: # VERIFY CONNECTION ESTABLISHED
-            
+            Logger.log(f"sem_driver at establish_connection: {sem_driver._value}")
             sem_driver.acquire() # 1 -> 0
+            Logger.log(f"sem_driver at establish_connection (after acquire): {sem_driver._value}")
             if not comm_queue.empty(): # It must be a retry
                 credentials: dict = comm_queue.get()
 
@@ -73,6 +80,7 @@ class Driver():
             web = f'http://{credentials.get("ip")}/web/initialize.htm'
             
             self.page, self.browser, self.playwright = await setup(web)
+            self.networkops.page = self.page
 
             if self.page is not None and self.browser is not None and self.playwright is not None:
                 break
@@ -117,48 +125,57 @@ class Driver():
 
         sem_driver.acquire() # should be 1 THEN decrement at successful login
 
+
+    # listen for requests from the UI thread. (GET/SET)
+    # GET : for UI component at load time
+    # SET : user requests by UI interaction
     async def listen(self):
         while True:
+            
             with queue_cond:
-                while comm_queue.empty():
+                
+                # use a Condition lock to wait until a request is present
+                while comm_queue.empty(): 
                     queue_cond.wait()
 
+                # used for loading UI resources
                 get_flag: bool = False
 
                 while not comm_queue.empty(): # Could be more than 1 request at once
+                    
                     response: dict = comm_queue.get() # Retrieve UI request
                     action: str = response.get("request")
                     get_flag = True if response.get("message") is None else False
-                    ret_flag = await self.parse_request(action)
-                    if ret_flag == GRACEFUL_EXIT:
-                        # Clean up Playwright resources before exiting
-                        await self.cleanup()
-                        break
-                    
+                    msg_reply = await self.parse_request(action)
+                    response['message'] = msg_reply # change the message with reply
                     # Put back response
                     comm_queue.put(response)
                     
                     if get_flag: # The batch requests were for UI
                         sem_UI.release() # UI ready to parse info
 
-    async def parse_request(self, req: str) -> int:
+
+    # Takes in a request string and converts it to a Request enum, proceeding to match
+    # the enum value with a specific web request.
+    async def parse_request(self, req: str):
         if req.upper() not in Request.__members__:
             return ERR_EXIT # Request failed
         
         request: Request = Request[req.upper()]
         match request:
             case Request.QUIT:
-                return GRACEFUL_EXIT
+                self.cleanup()
+                return None
             case Request.GET_IP:
-                # Implement Playwright-specific code for getting IP
-                pass
+                return self.networkops.get_IP()
+            case Request.GET_SUBNET:
+                return self.networkops.get_subnet()
             case Request.GET_DHCP:
-                # Implement Playwright-specific code for getting DHCP
-                pass
+                return self.networkops.get_dhcp()
             case _:
                 pass
         
-        return 0  # Default return
+        return None  # Default return
 
     # New method to clean up Playwright resources
     async def cleanup(self):

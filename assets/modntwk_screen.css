@@ -74,3 +74,14 @@ ToggleButton {
     margin-left: 1;
     width: 50%;
 }
+
+
+#current-network-settings {
+    height: 1fr;  /* Give it a fraction of available space */
+    min-height: 5;  /* Ensure minimum height to fit content */
+    align: center bottom;  /* Align contents to bottom */
+}
+
+#current-network-settings > * {
+    width: auto;
+}
