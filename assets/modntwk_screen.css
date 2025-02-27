@@ -1,0 +1,76 @@
+Grid {
+    border: white;
+    background: darkblue;
+    color: white
+}
+
+ListView {
+    border: none;
+    background: darkblue;
+}
+
+Checkbox {
+    border: none;
+    background: darkblue;
+    color: white;
+}
+
+Input {
+    border:none;
+    background: navy;
+    height:1;
+    color:white;
+}
+
+ToggleButton {
+    background: darkblue;    
+
+    & > .toggle--button {
+        color: white;
+        background: darkblue;
+    }
+    &.-on > .toggle--button {
+        color: gray;
+        background: blue;
+    }
+}
+
+#ntwk-config-grid {
+    grid-size: 2;
+    grid-rows: 1fr 3;
+    padding: 0 1;
+    height: 100%;
+    border: white;
+}
+
+#configurations, #devices-update {
+    column-span: 1;
+    height: 100;
+}
+
+#devices-update {
+    border: thick white;
+    height:100;
+}
+
+#options {
+    border-top: white;
+    column-span: 2;
+    height: 3;
+}
+
+#ip-field-container {
+    margin-top: 2;
+    height: auto;
+}
+
+#ip-label, #subnet-label {
+    padding-bottom: 1;
+    width:auto;
+}
+
+#ip-field, #subnet-mask-field {
+    background: darkblue;
+    margin-left: 1;
+    width: 50%;
+}

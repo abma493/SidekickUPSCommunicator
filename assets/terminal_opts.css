@@ -1,0 +1,36 @@
+Screen { /* always override previous screen structure */
+    layout: vertical;
+}
+
+#list-container {
+    align: center middle;
+}
+
+#opts-list {
+    border: white;
+    padding-top:3;
+}
+
+OptionList {
+    width: 70%;
+    height: 80%;
+    border:none;
+    background: darkblue;
+    text-align: center;
+}
+
+#title {
+    width: 100%;
+    text-align: center;
+}
+
+#options-container {
+    border-top: white;
+    height: 3;
+}
+
+Button {
+    border: none;
+    background: darkblue;
+    color:white;
+}

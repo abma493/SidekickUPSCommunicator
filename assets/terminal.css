@@ -1,0 +1,93 @@
+Screen {
+    layout: grid;
+    grid-size: 3 4;
+}
+
+.box {
+    height: 100%;
+    row-span: 2;
+}
+
+#title {
+    column-span: 4;
+    width: 100%;
+    text-align: center;
+}
+
+#main {
+    border: solid white;
+    text-align: center;
+    row-span: 2;
+}
+
+Input {
+    border:none;
+    background: #000ffa;
+    height:1;
+    color:white;
+}
+
+Input:focus {
+    background: blue;  /* Slightly lighter when focused */
+}
+
+Button {
+    border: none;
+    background: darkblue;
+    color:white;
+}
+
+Checkbox {
+    border:none;
+    background: darkblue;
+    color:white;   
+}
+
+ToggleButton {
+    background: darkblue;   
+
+    & > .toggle--button {
+        color: white;
+        background: darkblue;
+    }
+    &.-on > .toggle--button {
+        color: gray;
+        background: blue;
+    }
+}
+
+.username-container {
+    align: center middle;
+}
+
+.username-label {
+    width:auto;
+}
+
+.username-field {
+    width: 50%;
+    margin-left: 1;
+    background: darkblue;
+}
+
+
+.subtitle {
+    height: 1;
+    text-align: center;
+}
+
+
+#ipfiles-button {
+    align: center middle;
+    column-span:1;
+}
+
+#ok-button {
+    align: center middle;
+    column-span: 1;
+}
+
+#status{
+    align: center middle;
+    column-span: 1;
+}
