@@ -1,5 +1,6 @@
 from playwright.async_api import Page, expect
 import asyncio
+from logger import Logger
 
 class NetworkOptions:
     # Folder traversal (Config -> Ntwk -> IPv4)
@@ -8,23 +9,63 @@ class NetworkOptions:
         self._in_edit_mode = False
 
     async def load_network_folder(self):
-        # Switch to default content (not needed in Playwright as it handles frames differently)
-        
-        # First navigate to the navigation frame
-        await self.page.frame_locator("iframe[name='navigationFrame']").wait_for()
-        navigation_frame = self.page.frame("navigationFrame")
-        
-        # Click on config folder
-        config_folder = await navigation_frame.wait_for_selector("#report164160")
-        await config_folder.click()
-        
-        # Click on network folder
-        network_folder = await navigation_frame.wait_for_selector("#report163850")
-        await network_folder.click()
-        
-        # Click on IPv4 folder
-        ipv4_folder = await navigation_frame.wait_for_selector("#report164130") 
-        await ipv4_folder.click()
+        try:
+            if not self.page:
+                Logger.log("Error: Page is not set in NetworkOptions")
+                return
+                
+            Logger.log("Looking for navigation frame...")
+            
+            # Get the frame directly by name
+            navigation_frame = self.page.frame("navigationFrame")
+            
+            if not navigation_frame:
+                Logger.log("Navigation frame not found")
+                return
+            
+            # Wait for a bit to ensure the frame is fully loaded
+            await self.page.wait_for_timeout(1000)
+            
+            Logger.log("Looking for config folder...")
+            config_folder = await navigation_frame.wait_for_selector("#report164160", timeout=10000)
+            Logger.log("Clicking config folder...")
+            await config_folder.click()
+            await self.page.wait_for_timeout(1000)  # Small delay after click
+            
+            Logger.log("Looking for network folder...")
+            network_folder = await navigation_frame.wait_for_selector("#report163850", timeout=10000)
+            Logger.log("Clicking network folder...")
+            await network_folder.click()
+            await self.page.wait_for_timeout(1000)  # Small delay after click
+            
+            Logger.log("Looking for IPv4 folder...")
+            ipv4_folder = await navigation_frame.wait_for_selector("#report164130", timeout=10000)
+            Logger.log("Clicking IPv4 folder...")
+            await ipv4_folder.click()
+            Logger.log("IPv4 folder navigation complete")
+            
+        except Exception as e:
+            Logger.log(f"Error in load_network_folder: {str(e)}")
+
+        try:
+            detail_frame = self.page.frame("detailArea")
+            edit_button = await detail_frame.wait_for_selector("#editButton")
+            await edit_button.click()
+            
+            select_element = await detail_frame.wait_for_selector("#enum6138")
+            current_value = await select_element.evaluate("el => el.value")
+            dhcp_stat = "ON" if current_value == "0" else "OFF"
+
+            ip_field = await detail_frame.wait_for_selector("#str6139")
+            current_ip = await ip_field.input_value()
+
+            subnet_field = await detail_frame.wait_for_selector("#str6140")
+            current_subnet = await subnet_field.input_value()
+
+            return dhcp_stat, current_ip, current_subnet
+        except Exception as e:
+            print(f"Error parsing network fields: {str(e)}")
+            return None, None, None
 
     async def set_IP(self, IP):
         # Switch to the detail area frame
@@ -55,35 +96,9 @@ class NetworkOptions:
 
         # Get the current value from the IP field
         current_ip = await ip_field.input_value()
+        Logger.log(f"Got IP from playwright: {current_ip}")
         return current_ip
-    
-    async def get_subnet(self):
-        # Switch to the detail area frame
-        detail_frame = self.page.frame("detailArea")
-        
-        # Click edit button
-        detail_frame = await self.ensure_edit_mode(detail_frame)
-        # Find the IP field
-        subnet_field = await detail_frame.wait_for_selector("#str6140")
-
-        # Get the current value from the IP field
-        current_subnet = await subnet_field.input_value()
-        return current_subnet      
-    
-
-    async def ensure_edit_mode(self, detail_frame):
-        """
-        Helper to ensure we're in edit mode for the current frame.
-        Uses a class variable to track if we've already clicked edit.
-        """
-        # Use a class variable to track edit mode state
-        if not hasattr(self, '_in_edit_mode') or not self._in_edit_mode:
-            # Click edit button if not already in edit mode
-            edit_button = await detail_frame.wait_for_selector("#editButton")
-            await edit_button.click()
-            self._in_edit_mode = True
-        
-        return detail_frame
+  
 
     async def enable_dhcp(self):
         try:
@@ -97,16 +112,6 @@ class NetworkOptions:
             await asyncio.sleep(2)
         except Exception as e:
             print(f'DHCP enable operation failed: {e}')
-
-    async def get_dhcp(self):
-        try:
-            detail_frame = self.page.frame("detailArea")
-            detail_frame = await self.ensure_edit_mode(detail_frame)
-            select_element = await detail_frame.wait_for_selector("#enum6138")
-            current_value = await select_element.evaluate("el => el.value")
-            return current_value == "0"
-        except Exception as e:
-            print(f"Error getting DHCP status: {e}")
 
     async def isset_IPv4(self) -> bool:
         detail_frame = self.page.frame("detailArea")

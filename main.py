@@ -20,7 +20,7 @@ async def main():
     Logger.log("Loading driver and UI threads...")
 
     # Create a thread for the UI
-    ui_thread = threading.Thread(target=run_ui)
+    ui_thread = threading.Thread(target=run_ui, daemon=True)
     ui_thread.start()
 
     # Run the driver in the asyncio event loop

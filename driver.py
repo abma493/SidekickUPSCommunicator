@@ -11,6 +11,7 @@ ERR_EXIT = -1
 
 class Request(Enum):
     QUIT = auto()
+    GET_NTWK_OPS_R = auto()
     GET_IP = auto()
     SET_IP = auto()
     GET_SUBNET = auto()
@@ -19,8 +20,8 @@ class Request(Enum):
     SET_DHCP = auto()
     
 
-
 class Driver(): 
+
     def __init__(self):
         self.page = None
         self.browser = None
@@ -29,12 +30,12 @@ class Driver():
 
     # Controller will defer connection and login to login.py
     async def init(self):
-        Logger.log("HELLO!")
-        Logger.log(f"sem_driver at init {sem_driver._value}")
+
         sem_driver.acquire()
         credentials: dict = comm_queue.get()
         sem_driver.release()
-        Logger.log(f"sem_driver at init (after release) {sem_driver._value}")
+
+        # critical part of init: connect and authenticate
         await self.establish_connect(credentials)
         await self.authenticate(credentials)    
 
@@ -70,9 +71,9 @@ class Driver():
         # Setup the browser connection
         
         while True: # VERIFY CONNECTION ESTABLISHED
-            Logger.log(f"sem_driver at establish_connection: {sem_driver._value}")
+
             sem_driver.acquire() # 1 -> 0
-            Logger.log(f"sem_driver at establish_connection (after acquire): {sem_driver._value}")
+
             if not comm_queue.empty(): # It must be a retry
                 credentials: dict = comm_queue.get()
 
@@ -130,29 +131,27 @@ class Driver():
     # GET : for UI component at load time
     # SET : user requests by UI interaction
     async def listen(self):
+        
         while True:
             
             with queue_cond:
-                
                 # use a Condition lock to wait until a request is present
                 while comm_queue.empty(): 
+                    Logger.log("listen() waiting... (lets go of lock)")
                     queue_cond.wait()
 
-                # used for loading UI resources
-                get_flag: bool = False
-
-                while not comm_queue.empty(): # Could be more than 1 request at once
+                Logger.log(f" (Lock reacquired) Queue has requests to process... QUEUE = {comm_queue.__str__}")
+                response: dict = comm_queue.get() # Retrieve UI request
+                action: str = response.get("request")
+                msg_reply = await self.parse_request(action)
+                response['message'] = msg_reply # change the message with reply
+                
+                # Put back response
+                comm_queue.put(response)
                     
-                    response: dict = comm_queue.get() # Retrieve UI request
-                    action: str = response.get("request")
-                    get_flag = True if response.get("message") is None else False
-                    msg_reply = await self.parse_request(action)
-                    response['message'] = msg_reply # change the message with reply
-                    # Put back response
-                    comm_queue.put(response)
-                    
-                    if get_flag: # The batch requests were for UI
-                        sem_UI.release() # UI ready to parse info
+                
+                sem_UI.release() # UI ready to parse info
+                Logger.log(f"sem_UI: {sem_UI._value} triggered by {action} [{msg_reply}]")
 
 
     # Takes in a request string and converts it to a Request enum, proceeding to match
@@ -166,12 +165,8 @@ class Driver():
             case Request.QUIT:
                 self.cleanup()
                 return None
-            case Request.GET_IP:
-                return self.networkops.get_IP()
-            case Request.GET_SUBNET:
-                return self.networkops.get_subnet()
-            case Request.GET_DHCP:
-                return self.networkops.get_dhcp()
+            case Request.GET_NTWK_OPS_R:
+                return await self.networkops.load_network_folder()
             case _:
                 pass
         
