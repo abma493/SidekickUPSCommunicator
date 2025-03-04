@@ -4,9 +4,8 @@ from ModNetworkScreen import ModNetworkScreen
 from logger import Logger
 import asyncio
 from syncprims import queue_cond, comm_queue,sem_UI
-from restart_card import restart_card
 
-
+# Displayed right after login for user options.
 class OptionsScreen(Screen):
 
     CSS_PATH="./assets/terminal_opts.css"
@@ -46,12 +45,15 @@ class OptionsScreen(Screen):
                 yield Button("E - Edit", id="edit-button")
                 yield Label("Mode: Single (Default)", id="status-label")
     
+    # Quitting the app will ask for confirmation
     def action_quit_app(self) -> None:
         self.app.push_screen(QuitScreen())
 
+    # yield the modify network folder screen
     def action_mod_network_settings(self) -> None:
         self.app.push_screen(ModNetworkScreen())
 
+    # yield the restart card option
     def action_restart_card(self) -> None:
         self.app.push_screen(RestartScreen())
 
@@ -66,18 +68,21 @@ class RestartScreen(ModalScreen):
             self.success = success
 
     CSS_PATH = "./assets/restart_popup.css"
-    message: reactive = reactive(str, recompose=True)
 
     async def on_mount(self) -> None:
-        task = asyncio.create_task(self.perform_restart())
 
+        self.status_text = self.query_one("#message", Static)
+        self.button = self.query_one("#ok", Button)
+        self.button.add_class("disabled")
+        
+        task = asyncio.create_task(self.perform_restart())
         task.add_done_callback(self.handle_task_result)
 
     # Display layout
     def compose(self) -> ComposeResult:
          yield Grid(
-            Label(self.message, id="message"),
-            Button("OK", id="ok", disabled=True),
+            Static("Restarting in progress. Please wait.", id="message"),
+            Button("OK", id="ok", variant="primary", disabled=True),
             id="dialog",
         )
     
@@ -117,26 +122,26 @@ class RestartScreen(ModalScreen):
             self.message = "Restarting card. Please wait."
             restart_success: bool = await request_restart("RESTART")
             # notify the UI to update the reactive messages on screen
-            self.post_message(self.RestartMsg(restart_success))
+            # self.post_message(self.RestartMsg(restart_success))
+            if restart_success:
+                self.status_text.update("Restart successful!")
+            else:
+                self.status_text.update("Restart failed. Try again.")
+            self.button.disabled = False
+            self.button.remove_class("disabled")
         except Exception as e:
             Logger.log(f"Error restarting webcard: {e}")
 
 
     # Handle the only button on-screen, "OK"
     def on_button_pressed(self, event: Button.Pressed) -> None:
-        
-        if not event.button.disabled:
+        if event.button.id == "ok" and not event.button.disabled:
             self.app.pop_screen()
     
     @on(RestartMsg)
-    def handle_update(self, message: RestartMsg):
-        
+    def handle_update(self, message: RestartMsg):        
         if message.success:
             self.message = "Webcard restart success!"
         else:
             self.message = "Webcard restart Failed. Check log."
-            
-        ok_button: Button = self.query_one("#ok", Button)
-        ok_button.disabled = False # enable the button now
-        ok_button.variant = "primary"
 

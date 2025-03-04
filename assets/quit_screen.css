@@ -29,3 +29,7 @@ Grid {
     background: darkblue;
     color: white
 }
+
+Button {
+    margin: 1 0;
+}
