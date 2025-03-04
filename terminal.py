@@ -12,6 +12,6 @@ class ScreenApp(App):
         self.push_screen(BaseScreen())
 
 
-# if __name__ == "__main__":
-#     app = ScreenApp()
-#     app.run()
+if __name__ == "__main__":
+    app = ScreenApp()
+    app.run()

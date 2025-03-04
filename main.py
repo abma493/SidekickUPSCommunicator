@@ -19,7 +19,8 @@ async def main():
     Logger.configure(log_file="app.log", console=False, level="INFO")
     Logger.log("Loading driver and UI threads...")
 
-    # Create a thread for the UI
+    # Create a thread for the UI 
+    # It's a daemon so it shutsdown along with main 
     ui_thread = threading.Thread(target=run_ui, daemon=True)
     ui_thread.start()
 

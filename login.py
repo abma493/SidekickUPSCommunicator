@@ -1,7 +1,7 @@
 import asyncio
 from common_imports import *
 from playwright.async_api import async_playwright, TimeoutError as PlaywrightTimeoutError
-from VertivCommunicator.logger import Logger
+from logger import Logger
 
 # Playwright setup function
 async def setup(web: str):
@@ -53,10 +53,10 @@ async def login(page, user: str, passwd: str) -> bool:
         # Click login button
         login_button = await page.wait_for_selector("#login", state="visible", timeout=default_timeout)
         await login_button.click()
-        
+
         # Wait a bit after clicking login
-        await asyncio.sleep(mini_wait)
-        
+        await asyncio.sleep(mini_wait)  
+             
         # Check for login error
         login_error = await page.query_selector("#loginError")
         if login_error:

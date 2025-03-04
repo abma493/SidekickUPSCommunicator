@@ -1,4 +1,4 @@
-from playwright.async_api import Page, expect
+from playwright.async_api import Page
 import asyncio
 from logger import Logger
 
@@ -6,7 +6,6 @@ class NetworkOptions:
     # Folder traversal (Config -> Ntwk -> IPv4)
     def __init__(self, page: Page=None):
         self.page = page
-        self._in_edit_mode = False
 
     async def load_network_folder(self):
         try:
@@ -84,21 +83,6 @@ class NetworkOptions:
             # Click submit button
             submit_button = await detail_frame.wait_for_selector("#submitButton")
             await submit_button.click()
-
-
-    async def get_IP(self):
-        # Switch to the detail area frame
-        detail_frame = self.page.frame("detailArea")
-        detail_frame = await self.ensure_edit_mode(detail_frame)
-
-        # Find the IP field
-        ip_field = await detail_frame.wait_for_selector("#str6139")
-
-        # Get the current value from the IP field
-        current_ip = await ip_field.input_value()
-        Logger.log(f"Got IP from playwright: {current_ip}")
-        return current_ip
-  
 
     async def enable_dhcp(self):
         try:

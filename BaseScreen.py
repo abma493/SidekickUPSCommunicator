@@ -63,7 +63,7 @@ class BaseScreen(Screen):
         # Use the asyncio-compatible login processing
         self.process_login_async()
     
-    # Using Textual's work decorator with coroutine=True to run as an async worker
+    # Using Textual's work decorator to run as an async worker
     @work(exclusive=True)
     async def process_login_async(self):
         Logger.log("Attempting login...")

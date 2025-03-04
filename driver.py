@@ -5,21 +5,23 @@ from syncprims import sem_driver, sem_UI, comm_queue, queue_cond
 from common_imports import *
 from enum import Enum, auto
 from logger import Logger
+from restart_card import restart_card
 
 GRACEFUL_EXIT = 0
 ERR_EXIT = -1
 
 class Request(Enum):
     QUIT = auto()
+    RESTART = auto()
     GET_NTWK_OPS_R = auto()
-    GET_IP = auto()
     SET_IP = auto()
-    GET_SUBNET = auto()
     SET_SUBNET = auto()
-    GET_DHCP = auto()
     SET_DHCP = auto()
     
 
+# The Driver class serves as the liason between Textual's UI implementations
+# and the classes that specialize playwright's API to communicate in certain ways
+# with a Vertiv UPS's webpage.
 class Driver(): 
 
     def __init__(self):
@@ -27,6 +29,9 @@ class Driver():
         self.browser = None
         self.playwright = None
         self.networkops = NetworkOptions()
+        self.username = ""
+        self.password = ""
+        self.ip = ""
 
     # Controller will defer connection and login to login.py
     async def init(self):
@@ -43,8 +48,6 @@ class Driver():
         await asyncio.sleep(mini_wait)
         
         # Navigate to the communications tab
-        # Note: Playwright doesn't use frames the same way as Selenium
-        # This is an approximate conversion that will need testing
         try:
             # Switch to default content in Playwright is not needed
             # Find and switch to the tabArea frame
@@ -120,6 +123,9 @@ class Driver():
             sem_UI.release() # UI retrieves response (becomes 1 for UI to play around with)
             
             if login_success:
+                self.username = credentials.get("username")
+                self.password = credentials.get("password")
+                self.ip = credentials.get("ip")
                 break
 
             Logger.log("Login failed.\n")
@@ -140,7 +146,7 @@ class Driver():
                     Logger.log("listen() waiting... (lets go of lock)")
                     queue_cond.wait()
 
-                Logger.log(f" (Lock reacquired) Queue has requests to process... QUEUE = {comm_queue.__str__}")
+                Logger.log(f" (Lock reacquired) Queue has requests to process...")
                 response: dict = comm_queue.get() # Retrieve UI request
                 action: str = response.get("request")
                 msg_reply = await self.parse_request(action)
@@ -159,12 +165,14 @@ class Driver():
     async def parse_request(self, req: str):
         if req.upper() not in Request.__members__:
             return ERR_EXIT # Request failed
-        
+        Logger.log(f"Fetching {req}...")
         request: Request = Request[req.upper()]
         match request:
             case Request.QUIT:
-                self.cleanup()
+                await self.cleanup()
                 return None
+            case Request.RESTART:
+                return await self.restart_and_login()
             case Request.GET_NTWK_OPS_R:
                 return await self.networkops.load_network_folder()
             case _:
@@ -178,6 +186,37 @@ class Driver():
             await self.browser.close()
         if self.playwright:
             await self.playwright.stop()
+
+    
+    # Requests a restart from Playwright API to Vertiv site
+    # Upon receiving a successful reboot attempt, it will log back in with
+    # app-cached credentials (TODO: cred storage should be made safer)
+    async def restart_and_login(self):  
+
+        try:
+            restart_success = await restart_card(self.page, self.ip)
+            if restart_success:
+                Logger.log("restart complete. Logging back in.")
+                
+                # there's no reason why this should fail (unless creds are changed)
+                login_success: bool = False
+                retry_limit = 3
+                retry = 0
+                while not login_success and retry < retry_limit:
+                    login_success = await login(self.page, self.username, self.password)
+                    retry += 1
+                if not login_success: # retries limit reached, failed login (account locked?)
+                    Logger.log("Login failed. Account may be locked or credentials changed.")
+                    return False
+                else:
+                    return True # restart good and login back good!
+            else:
+                return False
+                Logger.log("Restart failed.")
+        except Exception as e:
+            Logger.log(f"Error during restart: {str(e)}")
+            return False
+
 
 
 
