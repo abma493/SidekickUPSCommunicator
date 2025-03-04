@@ -119,7 +119,6 @@ class RestartScreen(ModalScreen):
             return response
         
         try:
-            self.message = "Restarting card. Please wait."
             restart_success: bool = await request_restart("RESTART")
             # notify the UI to update the reactive messages on screen
             # self.post_message(self.RestartMsg(restart_success))
@@ -127,6 +126,7 @@ class RestartScreen(ModalScreen):
                 self.status_text.update("Restart successful!")
             else:
                 self.status_text.update("Restart failed. Try again.")
+                
             self.button.disabled = False
             self.button.remove_class("disabled")
         except Exception as e:
@@ -137,11 +137,4 @@ class RestartScreen(ModalScreen):
     def on_button_pressed(self, event: Button.Pressed) -> None:
         if event.button.id == "ok" and not event.button.disabled:
             self.app.pop_screen()
-    
-    @on(RestartMsg)
-    def handle_update(self, message: RestartMsg):        
-        if message.success:
-            self.message = "Webcard restart success!"
-        else:
-            self.message = "Webcard restart Failed. Check log."
 

@@ -17,6 +17,7 @@ class Request(Enum):
     SET_IP = auto()
     SET_SUBNET = auto()
     SET_DHCP = auto()
+    SET_STATIC = auto()
     
 
 # The Driver class serves as the liason between Textual's UI implementations
@@ -149,23 +150,26 @@ class Driver():
                 Logger.log(f" (Lock reacquired) Queue has requests to process...")
                 response: dict = comm_queue.get() # Retrieve UI request
                 action: str = response.get("request")
-                msg_reply = await self.parse_request(action)
+                message = response.get("message")
+                msg_reply = await self.parse_request(action, message)
+                
                 response['message'] = msg_reply # change the message with reply
                 
                 # Put back response
                 comm_queue.put(response)
                     
                 
-                sem_UI.release() # UI ready to parse info
+                sem_UI.release() # UI ready to parse response
                 Logger.log(f"sem_UI: {sem_UI._value} triggered by {action} [{msg_reply}]")
 
 
     # Takes in a request string and converts it to a Request enum, proceeding to match
     # the enum value with a specific web request.
-    async def parse_request(self, req: str):
+    async def parse_request(self, req: str, message):
         if req.upper() not in Request.__members__:
+            Logger.log("Error parsing request")
             return ERR_EXIT # Request failed
-        Logger.log(f"Fetching {req}...")
+        Logger.log(f"Fetching {req} w/ message {message}...")
         request: Request = Request[req.upper()]
         match request:
             case Request.QUIT:
@@ -175,7 +179,18 @@ class Driver():
                 return await self.restart_and_login()
             case Request.GET_NTWK_OPS_R:
                 return await self.networkops.load_network_folder()
+            case Request.SET_IP:
+                Logger.log(f"Setting IP: {message}")
+                return await self.networkops.set_IP(message)
+            case Request.SET_SUBNET:
+                Logger.log(f"Setting subnet: {message}")
+                return await self.networkops.set_subnet(message)
+            case Request.SET_DHCP:
+                return await self.networkops.enable_dhcp()
+            case Request.SET_STATIC:
+                return await self.networkops.enable_static()
             case _:
+                Logger.log("NO request parsed")
                 pass
         
         return None  # Default return
@@ -211,8 +226,8 @@ class Driver():
                 else:
                     return True # restart good and login back good!
             else:
-                return False
                 Logger.log("Restart failed.")
+                return False
         except Exception as e:
             Logger.log(f"Error during restart: {str(e)}")
             return False

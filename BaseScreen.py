@@ -118,7 +118,6 @@ class BaseScreen(Screen):
             else:
                 # Signal driver to continue
                 sem_driver.release()
-                Logger.log("Login OK.")
                 self.post_message(LoginMsg(True, message))
         else:  # web error
             # Clear input fields

@@ -1,77 +1,79 @@
-from textual.app import App
-from textual.widgets import Button, Static
-from textual.containers import Container
+from textual.app import App, ComposeResult
+from textual.containers import Center
+from textual.widgets import Button, Label
 import asyncio
 
-
-class ButtonEnableExitDemo(App):
-    """Demo app showing a button that enables after 5 seconds and exits when clicked."""
-
+class ConfirmDialog(App):
     CSS = """
-    Container {
-        layout: vertical;
+    Screen {
         align: center middle;
+    }
+    
+    .container {
+        width: 50%;
+        height: auto;
+        border: solid green;
+        padding: 2;
+    }
+    
+    #question {
+        text-align: center;
+        margin-bottom: 1;
+        height: 3;
+    }
+    
+    .buttons {
         width: 100%;
-        height: 100%;
+        height: auto;
+        align: center middle;
     }
     
     Button {
-        margin: 1 0;
-    }
-    
-    #timer {
-        height: 1;
-        margin-bottom: 1;
-    }
-    
-    #status {
-        height: 1;
-        margin-bottom: 1;
-        color: yellow;
-    }
-    
-    Button.disabled {
-        background: gray;
-        color: darkgray;
+        margin: 1 2;
     }
     """
 
-    def compose(self):
-        with Container():
-            yield Static("Button will be enabled in 5 seconds...", id="timer")
-            yield Static("In progress...", id="status")
-            yield Button("Exit Application", id="exit_button", disabled=True)
+    def compose(self) -> ComposeResult:
+        with Center(classes="container"):
+            yield Label("Do you want to continue?", id="question")
+            with Center(classes="buttons"):
+                yield Button("Yes", id="yes-button", variant="success")
+                yield Button("No", id="no-button", variant="error")
 
-    def on_mount(self):
-        """Called when app is mounted."""
-        self.button = self.query_one("#exit_button", Button)
-        self.timer_text = self.query_one("#timer", Static)
-        self.status_text = self.query_one("#status", Static)
+    async def on_button_pressed(self, event: Button.Pressed) -> None:
+        button_id = event.button.id
         
-        # Add a CSS class to show the disabled state visually
-        self.button.add_class("disabled")
-        
-        # Start the countdown task
-        asyncio.create_task(self.enable_button_after_delay())
-
-    async def enable_button_after_delay(self):
-        """Enable the button after a 5 second delay with countdown."""
-        for seconds_left in range(5, 0, -1):
-            self.timer_text.update(f"Button will be enabled in {seconds_left} seconds...")
-            await asyncio.sleep(1)
+        if button_id == "yes-button":
+            # Remove the buttons
+            buttons = self.query_one(".buttons")
+            buttons.remove()
             
-        self.timer_text.update("Button is now enabled!")
-        self.status_text.update("Ready to quit")
-        self.status_text.styles.color = "green"
-        self.button.disabled = False
-        self.button.remove_class("disabled")
-
-    def on_button_pressed(self, event: Button.Pressed):
-        """Handle button press event."""
-        if event.button.id == "exit_button" and not event.button.disabled:
-            self.exit()
-
+            # Update the label
+            self.query_one("#question").update("Processing...")
+            
+            # Wait for 5 seconds
+            await asyncio.sleep(5)
+            
+            # Update the container with new content
+            container = self.query_one(".container")
+            container.remove_children()
+            
+            # Add new content with DIFFERENT ID
+            label = Label("Process complete!", id="complete_message")
+            container.mount(label)
+            
+            buttons_container = Center(classes="buttons")
+            container.mount(buttons_container)
+            
+            exit_button = Button("EXIT", id="exit-button", variant="primary")
+            buttons_container.mount(exit_button)
+                
+        elif button_id == "no-button":
+            self.exit(0)  # Exit with code 0
+            
+        elif button_id == "exit-button":
+            self.exit(0)  # Exit with code 0
 
 if __name__ == "__main__":
-    app = ButtonEnableExitDemo()
+    app = ConfirmDialog()
     app.run()
