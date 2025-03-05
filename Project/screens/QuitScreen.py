@@ -1,9 +1,9 @@
-from common_term import *
+from common.common_term import *
 
 
 class QuitScreen(ModalScreen):
 
-    CSS_PATH = "./assets/quit_screen.css"
+    CSS_PATH = "../assets/quit_screen.css"
 
     def compose(self) -> ComposeResult:
         

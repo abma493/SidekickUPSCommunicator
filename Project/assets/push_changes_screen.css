@@ -1,4 +1,4 @@
-QuitScreen {
+PushChangesScreen {
     align: center middle;
 }
 
@@ -8,7 +8,7 @@ QuitScreen {
     grid-rows: 1fr 3;
     padding: 0 1;
     width: 60;
-    height: 11;
+    height:11;
     border: thick white;
     background: darkblue;
 }
@@ -20,8 +20,8 @@ QuitScreen {
     content-align: center middle;
 }
 
-#quit, #cancel {
-    width: 100%;
+.buttons {
+    width: auto;
 }
 
 Grid {

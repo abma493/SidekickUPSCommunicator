@@ -1,5 +1,5 @@
-from common_term import *
-from OptionsScreen import OptionsScreen
+from common.common_term import *
+from .OptionsScreen import OptionsScreen
 from textual.message import Message
 from textual import work
 from syncprims import sem_driver, sem_UI, comm_queue
@@ -16,7 +16,7 @@ class LoginMsg(Message):
 # This is the Login/Connection screen shown while driver queries 
 # the web based on a user-provided IP and validates credentials
 class BaseScreen(Screen):
-    CSS_PATH = "./assets/terminal.css"
+    CSS_PATH = "../assets/terminal.css"
     info_msg: reactive = reactive(str, recompose=True)
 
     def __init__(self, *args, **kwargs):

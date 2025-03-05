@@ -2,7 +2,7 @@ import asyncio
 from login import setup, login
 from ntwk_ops import NetworkOptions
 from syncprims import sem_driver, sem_UI, comm_queue, queue_cond
-from common_imports import *
+from common.common_imports import *
 from enum import Enum, auto
 from logger import Logger
 from restart_card import restart_card
@@ -48,25 +48,7 @@ class Driver():
         # Fetch the communications tab 
         await asyncio.sleep(mini_wait)
         
-        # Navigate to the communications tab
-        try:
-            # Switch to default content in Playwright is not needed
-            # Find and switch to the tabArea frame
-            frame = self.page.frame("tabArea")
-            if frame:
-                # Find and click the communications tab within the frame
-                comms_tab = await frame.wait_for_selector("#tab4", timeout=default_timeout)
-                await comms_tab.click()
-            else:
-                # If the frame can't be found, try to find it by other means
-                frames = self.page.frames
-                for frame in frames:
-                    if "tabArea" in frame.name:
-                        comms_tab = await frame.wait_for_selector("#tab4", timeout=default_timeout)
-                        await comms_tab.click()
-                        break
-        except Exception as e:
-            Logger.log(f"Error navigating to communications tab: {e}")
+        await self.load_comms_tab()
 
     # Set a connection with an IP, if successful AND a single IP operation request,
     # then connection is maintained. Otherwise (batch operation), single IP from the batch is
@@ -157,7 +139,6 @@ class Driver():
                 
                 # Put back response
                 comm_queue.put(response)
-                    
                 
                 sem_UI.release() # UI ready to parse response
                 Logger.log(f"sem_UI: {sem_UI._value} triggered by {action} [{msg_reply}]")
@@ -224,6 +205,7 @@ class Driver():
                     Logger.log("Login failed. Account may be locked or credentials changed.")
                     return False
                 else:
+                    await self.load_comms_tab()
                     return True # restart good and login back good!
             else:
                 Logger.log("Restart failed.")
@@ -232,6 +214,29 @@ class Driver():
             Logger.log(f"Error during restart: {str(e)}")
             return False
 
+    async def load_comms_tab(self):
+        # Navigate to the communications tab
+        try:
+            # Switch to default content in Playwright is not needed
+            # Find and switch to the tabArea frame
+            frame = self.page.frame("tabArea")
+            if frame:
+                # Find and click the communications tab within the frame
+                comms_tab = await frame.wait_for_selector("#tab4", timeout=default_timeout)
+                await comms_tab.click()
+            else:
+                # If the frame can't be found, try to find it by other means
+                frames = self.page.frames
+                for frame in frames:
+                    if "tabArea" in frame.name:
+                        comms_tab = await frame.wait_for_selector("#tab4", timeout=default_timeout)
+                        await comms_tab.click()
+                        break
+        except Exception as e:
+            Logger.log(f"Error navigating to communications tab: {e}")
 
+    # run batch operations
+    async def run_batch():
+        pass
 
 

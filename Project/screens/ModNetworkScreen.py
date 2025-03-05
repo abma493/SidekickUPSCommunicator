@@ -1,9 +1,8 @@
-from common_term import *
+from common.common_term import *
 import asyncio
-from syncprims import queue_cond, comm_queue, sem_UI
-from QuitScreen import QuitScreen
-from ntwk_ops import NetworkOptions
-from RestartScreenPrompt import PushChangesScreen
+from syncprims import send_request
+from .QuitScreen import QuitScreen
+from .RestartScreenPrompt import PushChangesScreen
 from logger import Logger
 
 class NetworkDataResourcesMsg(Message):
@@ -15,13 +14,13 @@ class NetworkDataResourcesMsg(Message):
 
 class ModNetworkScreen(ModalScreen):
     
-    CSS_PATH="./assets/modntwk_screen.css"
+    CSS_PATH="../assets/modntwk_screen.css"
     BINDINGS = [
         ("q", "quit_app"),
         ("b", "back_menu"),
     ]
 
-    async def _on_mount(self):
+    async def on_mount(self):
         Logger.log("Loading ModNetworkScreen resources...")
         self.dhcp_checkbox: Checkbox = self.query_one("#dhcp-checkbox")
         self.current_ip = self.query_one("#current-ip", Static)
@@ -31,35 +30,20 @@ class ModNetworkScreen(ModalScreen):
         self.pending_dhcp_change = self.dhcp_changed #by default
         
         task = asyncio.create_task(self.load_resources())
-        task.add_done_callback(self._handle_task_result)
+        task.add_done_callback(self.handle_task_result)
 
-    def _handle_task_result(self, task):
+    def handle_task_result(self, task):
         # Check for exceptions
         if task.cancelled():
             Logger.log("Network data task was cancelled")
         elif task.exception():
             Logger.log(f"Network data task failed: {task.exception()}")
 
-    # send a request and receive a response
-    async def send_request(self, request_type: str, message=None) -> tuple:
-        request = {
-                                'request': request_type,
-                                'message': message
-        } 
-        Logger.log(f"requesting: req -> {request.get("request")} msg -> {request.get("message")}")
-        with queue_cond:
-            comm_queue.put(request)
-            queue_cond.notify() # let listen() know there's a request-- let go of lock too!
-                
-        sem_UI.acquire()
-        response = dict(comm_queue.get()).get("message")
-        return response
-
     # Pre-populate current Network settings 
     async def load_resources(self):
         try: 
 
-            dhcp, ip, subnet = await self.send_request("GET_NTWK_OPS_R")        
+            dhcp, ip, subnet = await send_request("GET_NTWK_OPS_R")        
             Logger.log(f"received: [IP: {ip}], [subnet: {subnet}], [dhcp: {dhcp}]")
     
             self.current_ip.update(f"Current IP: {ip}" if ip else "Current IP: ERROR")

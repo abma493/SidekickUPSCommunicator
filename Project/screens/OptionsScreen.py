@@ -1,14 +1,17 @@
-from common_term import *
-from QuitScreen import QuitScreen
-from ModNetworkScreen import ModNetworkScreen
+from common.common_term import *
+from common.common_imports import current_mode, path_to_batch, path_to_config
+from .QuitScreen import QuitScreen
+from .ModNetworkScreen import ModNetworkScreen
+from .EditScreen import EditScreen
 from logger import Logger
 import asyncio
-from syncprims import queue_cond, comm_queue,sem_UI
+import os
+from syncprims import send_request
 
 # Displayed right after login for user options.
 class OptionsScreen(Screen):
 
-    CSS_PATH="./assets/terminal_opts.css"
+    CSS_PATH="../assets/terminal_opts.css"
 
     BINDINGS = [
         ("q", "quit_app"),
@@ -37,13 +40,15 @@ class OptionsScreen(Screen):
                 "5. Push firmware update",
                 Option("", disabled=True),
                 "6. Restart Web Card",
+                Option("", disabled=True),
+                "7. Push Batch Configuration File",
                 id="opts-list"
             )       
         
         with Horizontal(id="options-container"):
                 yield Button("Q - Quit", id="quit-button")
                 yield Button("E - Edit", id="edit-button")
-                yield Label("Mode: Single (Default)", id="status-label")
+                yield Label(f"Mode: Single (Default)", id="status-label")
     
     # Quitting the app will ask for confirmation
     def action_quit_app(self) -> None:
@@ -56,6 +61,38 @@ class OptionsScreen(Screen):
     # yield the restart card option
     def action_restart_card(self) -> None:
         self.app.push_screen(RestartScreen())
+    
+    # handle editing settings
+    def action_edit_settings(self) -> None:
+
+        def check_edit(result: tuple) -> None:
+            
+            mode = result[0]
+            path_batch = result[1]
+            path_config = result[2]
+            
+            # set the current mode
+            global current_mode, path_to_config, path_to_batch # this may be WRONG!
+            current_mode = mode
+
+            # validate with the OS that these file paths are correct
+            if path_batch is not None and not os.path.exists(path_batch):
+                Logger.log(f"Path to batch file does not exist: {path_batch}")
+                current_mode = "Single"
+                
+            if path_config is not None and not os.path.exists(path_config):
+                Logger.log(f"Path to batch file does not exist: {path_batch}")
+                current_mode = "Single"
+            
+            status_label: Label = self.query_one("#status-label")
+            status_label.update(f"Mode: {current_mode}")
+            
+            path_to_config = path_config
+            path_to_batch = path_batch
+
+        self.app.push_screen(EditScreen(), check_edit)
+            
+
 
 
 
@@ -98,28 +135,9 @@ class RestartScreen(ModalScreen):
     # to the listen() in driver.py
     async def perform_restart(self):
 
-        # parses the request into the queue, sends it and parses
-        # the response back to the nesting function
-        async def request_restart(request_type: str) -> bool:
-
-            request = {
-                                'request': request_type,
-                                'message': None
-            } 
-
-            with queue_cond:
-                comm_queue.put(request)
-                queue_cond.notify()
-                
-            Logger.log("Requesting to restart card.")
-
-            sem_UI.acquire()
-            response = dict(comm_queue.get()).get("message")
-            sem_UI.release()
-            return response
-        
         try:
-            restart_success: bool = await request_restart("RESTART")
+            Logger.log("Requesting to restart card.")
+            restart_success: bool = await send_request("RESTART")
             # notify the UI to update the reactive messages on screen
             # self.post_message(self.RestartMsg(restart_success))
             if restart_success:

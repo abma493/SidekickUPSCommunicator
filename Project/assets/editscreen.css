@@ -1,0 +1,99 @@
+/* Base style for the edit modal */
+#edit-modal {
+    layout: grid;
+    grid-size: 2;
+    grid-rows: auto auto auto auto;
+    grid-columns: 40 40;
+    grid-gutter: 1 2;
+    width: 90%;
+    height: 60%;
+    border: thick white;
+    background: darkblue;
+    align: center middle;
+}
+
+/* Title should span across both columns */
+#title {
+    column-span: 2;
+    row-span: 1;
+    width: 100%;
+    text-align: center;
+    text-style: bold;
+}
+
+/* Mode label and select positioning */
+#mode-label {
+    column-span: 1;
+    content-align: left middle;
+    background: darkblue;
+    padding: 1 1;
+    margin: 0
+}
+
+#mode-select {
+    margin: 0;
+    min-width: 20;
+    background: darkblue;
+    height: auto;
+}
+
+/* Style for the batch and config path inputs */
+#path-batch, #path-config {
+    column-span: 2;
+    background: darkblue;
+    border: solid white;
+    height: 3;
+}
+
+/* When inputs are disabled */
+#path-batch:disabled, #path-config:disabled {
+    opacity: 0.7;
+    border: solid white;
+    background: gray 50%;
+}
+
+/* OK button styling */
+#ok-button {
+    column-span: 2;
+    min-width: 10;
+    width: 10;
+    content-align: center middle;
+    align-horizontal: center;
+}
+
+
+/* Custom styling for the modal screen */
+EditScreen {
+    align: center middle;
+    background: rgba(0, 0, 0, 0.5);
+}
+
+/* Style for button states */
+Button {
+    border:none;
+    background: darkblue;
+    color: white;
+}
+
+Button:focus {
+    background: blue;
+    border: heavy white;
+}
+
+/* Making the select component match the Vertiv blue style */
+Select {
+    background: darkblue;
+    color: white;
+    border: solid white;
+}
+
+Select:focus {
+    border: heavy lightblue;
+}
+
+Select > .select--option-highlighted {
+    background: white;
+}
+
+/* Custom color variables to match the Vertiv Configuration Tool */
+$surface: darkblue;

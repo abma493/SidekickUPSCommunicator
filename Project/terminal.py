@@ -1,5 +1,5 @@
-from common_term import *
-from BaseScreen import BaseScreen
+from common.common_term import *
+from screens.BaseScreen import BaseScreen
 
       
 
