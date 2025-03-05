@@ -1,0 +1,15 @@
+Major changes:
+    
+    > Option 1 can now push changes and restart card to apply them (DHCP mod has not been tested though)
+        > back button and selecting option 1 again will reload current data
+    > EditScreen exists now to modify app mode (Single or Batch)
+        > A batch file and config file is now stored in-memory 
+    
+Improvements
+    > RestartScreenPrompt needs Label updates for notifying user that webcard is restarting 
+    > Selecting batch mode MUST require both files to be supplied and checked before continuing
+    > If in batch mode, pressing E should populate the file path fields with the existing file paths
+
+
+Next steps
+    > Create a class to handle batch operation of applying a configuration file to its webcard

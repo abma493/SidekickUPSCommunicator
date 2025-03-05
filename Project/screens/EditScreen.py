@@ -67,22 +67,3 @@ class EditScreen(ModalScreen):
         
         # Dismiss the modal
         self.dismiss((mode, path_batch, path_config))
-
-
-# if __name__ == "__main__":
-#     # For testing purposes
-#     from textual.app import App
-    
-#     class EditApp(App):
-#         CSS_PATH = "../assets/editscreen.css"
-        
-#         def on_mount(self) -> None:
-#             self.push_screen(EditScreen())
-        
-#         def on_screen_dismissed(self, event) -> None:
-#             if event.screen.id == "edit_screen":
-#                 print(f"Received data: {event.result}")
-#                 self.exit()
-    
-#     app = EditApp()
-#     app.run()
