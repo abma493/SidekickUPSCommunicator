@@ -1,0 +1,62 @@
+/* Textual-specific CSS for job containers */
+
+
+#batch-screen-grid {
+    content-align: center middle;
+    grid-rows: auto 1fr auto; /* title, list, buttons */
+    background: darkblue;
+}
+
+#title {
+    width: 100%;
+    text-align: center;
+}
+
+.job-container {
+    height: auto;
+    margin: 1 0;
+    min-height: 3;
+}
+
+#list-of-jobs {
+    background: darkblue;
+    height: 20;
+    width: auto;
+    margin-top: 1;
+    align: center middle;
+    overflow: auto;
+    scrollbar-size: 1 1;
+    border: white;
+}
+
+
+/* Prevent each job from taking full height */
+ListItem {
+    height: auto;
+    width: auto;
+    min-height: 3;
+}
+
+/* Make the progress bars more visible */
+ProgressBar {
+    width: 100%;
+}
+
+/* Add spacing between list items */
+ListItem {
+    margin-top: 0;
+}
+
+#buttons-wrapper {
+    width: 100%;
+    content-align: center middle;
+}
+
+.buttons-container {
+    height: 3;
+    width: 100%;
+}
+
+.buttons-container > * {
+    margin-right: 1;
+}
