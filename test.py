@@ -1,6 +1,7 @@
 from textual.app import App, ComposeResult
-from textual.containers import Center
-from textual.widgets import Button, Label
+from textual.timer import Timer
+from textual.containers import Center, Middle
+from textual.widgets import Button, Label, ProgressBar
 import asyncio
 
 class ConfirmDialog(App):
@@ -35,44 +36,37 @@ class ConfirmDialog(App):
 
     def compose(self) -> ComposeResult:
         with Center(classes="container"):
-            yield Label("Do you want to continue?", id="question")
-            with Center(classes="buttons"):
-                yield Button("Yes", id="yes-button", variant="success")
-                yield Button("No", id="no-button", variant="error")
+            yield Button("Run", id="run-button")
+            yield Label("Loading", id="question")
+            with Center():
+                    yield ProgressBar(total=100, show_eta=False)
+
 
     async def on_button_pressed(self, event: Button.Pressed) -> None:
         button_id = event.button.id
         
-        if button_id == "yes-button":
-            # Remove the buttons
-            buttons = self.query_one(".buttons")
-            buttons.remove()
+        if button_id == "run-button":
+            await self.most_func()
+
+    async def most_func(self):
+        # Update the label
+        self.query_one("#question").update("Processing...")
+        await asyncio.sleep(2) #simulate work
+        self.query_one(ProgressBar).advance(25)
+        self.query_one("#question").update("Please wait...")
+        # Wait for 5 seconds
+        await asyncio.sleep(5) #simulate work again
+        self.query_one(ProgressBar).advance(50)
+        self.query_one("#question").update("Almost done...")
+        await self.final_func()
+
+
+
+    async def final_func(self):
+        await asyncio.sleep(3)
+        self.query_one("#question").update("DONE!")
+        self.query_one(ProgressBar).advance(25)
             
-            # Update the label
-            self.query_one("#question").update("Processing...")
-            
-            # Wait for 5 seconds
-            await asyncio.sleep(5)
-            
-            # Update the container with new content
-            container = self.query_one(".container")
-            container.remove_children()
-            
-            # Add new content with DIFFERENT ID
-            label = Label("Process complete!", id="complete_message")
-            container.mount(label)
-            
-            buttons_container = Center(classes="buttons")
-            container.mount(buttons_container)
-            
-            exit_button = Button("EXIT", id="exit-button", variant="primary")
-            buttons_container.mount(exit_button)
-                
-        elif button_id == "no-button":
-            self.exit(0)  # Exit with code 0
-            
-        elif button_id == "exit-button":
-            self.exit(0)  # Exit with code 0
 
 if __name__ == "__main__":
     app = ConfirmDialog()
