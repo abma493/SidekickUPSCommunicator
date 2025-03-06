@@ -1,5 +1,5 @@
 from common.common_term import *
-from playwright.async_api import async_playwright, BrowserContext, TimeoutError as PlaywrightTimeoutError
+from playwright.async_api import async_playwright, expect, BrowserContext, TimeoutError as PlaywrightTimeoutError
 from common.common_imports import default_timeout
 from textual.widgets import Select
 from logger import Logger
@@ -7,6 +7,7 @@ from login import login
 import asyncio
 from datetime import datetime
 import os
+import re
 from logger import Logger
 
 class BatchOptScreen(App):
@@ -146,27 +147,44 @@ class BatchOptScreen(App):
                         await download_val.save_as(download_val.suggested_filename)
                     else: 
                         self.query_one(f"#{id}", ProgressBar).advance(20)
-                        self.query_one(f"#stat-job{id}", Static).update("Importing file...")
+                        self.query_one(f"#stat-job{id}", Static).update("Setting up...")
                         
                         import_button = await detail_frame.wait_for_selector("#commBtn272")
                         await import_button.click()
                         
                         try:
-                            modal = await detail_frame.locator('div[id="modal-dialog-cfgImport"][class*="active"]')
-                            modal.wait_for(state="visible")
+                            detail_frame.locator('div[id="modal-dialog-cfgImport"][class*="active"]').wait_for(state="visible")
+   
                             # await detail_frame.evaluate('document.getElementById("CancelImportCfg").click()')
-                            form = await detail_frame.locator('form[name="ImportConfiguration"]')
-                            self.query_one(f"#stat-job{id}", Static).update("found the form")
-                            await asyncio.sleep(5)
+                            detail_frame.locator('form[name="ImportConfiguration"]').wait_for(state="visible")
+                            
+                            async with page.expect_file_chooser() as fc_info:
+                                # Click the Browse button
+                                await detail_frame.locator('form[name="ImportConfiguration"] input[value="Browse..."]').click()
+                            
+                            self.query_one(f"#stat-job{id}", Static).update("Uploading file...")
+                            # Upload the file
+                            file_chooser = await fc_info.value
+                            await file_chooser.set_files('config_00-09-f5-31-6a-f4_2025-03-06_21-42-07.txt')
+                            
+                            await detail_frame.evaluate('document.getElementById("ImportCfg").click()')
+
+                            # wait for the import status element to be visible
+                            status_element = detail_frame.locator('form[id="ImportCfgStatus"]')
+
+                            # First wait for element to be visible
+                            await status_element.wait_for(state="visible", timeout=10000)
+
+                            # Wait for importing text (optional if you know it's already there)
+                            await expect(status_element).to_have_text(re.compile("Importing configuration settings"))
+                            self.query_one(f"#stat-job{id}", Static).update("Importing configuration changes...")
+
+                            # Wait for text to change to success message with longer timeout
+                            await expect(status_element).to_have_text(re.compile("succeed|complete|reboot"), timeout=300000)
+                            self.query_one(f"#stat-job{id}", Static).update("Rebooting...")
                         except Exception as e:
                             Logger.log(f"Error occurred: {e}")
-                        # file_input = await detail_frame.wait_for_selector('form input[type="file"]')
-                        # await file_input.set_input_files('config_00-09-f5-2e-55-91_2025-03-06_17-12-51.txt')
                         
-                        # await detail_frame.evaluate('document.getElementById("ImportCfg").click()')
-                        
-
-
                     self.query_one(f"#{id}", ProgressBar).advance(50) 
                     self.query_one(f"#stat-job{id}", Static).update("DONE") 
                     break # break off because if we get here, this job is complete!
@@ -176,7 +194,7 @@ class BatchOptScreen(App):
                 Logger.log(f"An error occured with job {id} [{ip}] : {e}")
                 self.query_one(f"#{id}", ProgressBar).update(total=100)
                 self.query_one(f"#stat-job{id}", Static).update(f"Job failed. Retry: {retry}/{max_retries}")  
-                asyncio.sleep(2) # let the message show             
+                asyncio.sleep(2) # let the message show          
             finally: # close the playwright elements before exiting the job
                 if context:
                     await context.close()
@@ -191,7 +209,7 @@ class BatchOptScreen(App):
 if __name__ == "__main__":
     
     jobs = [
-        {"ip": "10.5.3.20", "id": "uno", "status": "LOADING"},
+        {"ip": "10.9.14.161", "id": "uno", "status": "LOADING"},
         # {"ip": "10.5.5.200", "id": "dos", "status": "LOADING"}, 
         #{"ip": "10.4.3.200", "id": "tres", "status": "LOADING"}, # flawed
         #{"ip": "10.5.21.200", "id": "cuatro", "status": "LOADING"}
