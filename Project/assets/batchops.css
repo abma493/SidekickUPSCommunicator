@@ -59,4 +59,22 @@ ListItem {
 
 .buttons-container > * {
     margin-right: 1;
+    margin-left: 1;
+    margin-bottom: 1;
 }
+
+#mode-select {
+    margin-left: 30;
+    margin-bottom: 1;
+    min-width: 20;
+    width:20;
+    background: darkblue;
+    height: auto;    
+}
+
+Button {
+    border: none;
+    background: darkblue;
+    color:white;
+}
+

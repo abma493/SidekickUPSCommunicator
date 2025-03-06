@@ -2,8 +2,7 @@ from textual import on
 from textual.app import ComposeResult
 from textual.containers import Container
 from textual.screen import ModalScreen
-from textual.widgets import Button, Input, Label, Select, Footer
-from textual.binding import Binding
+from textual.widgets import Button, Input, Label, Select
 from logger import Logger
 
 
