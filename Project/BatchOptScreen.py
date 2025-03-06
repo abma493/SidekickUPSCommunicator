@@ -151,13 +151,18 @@ class BatchOptScreen(App):
                         import_button = await detail_frame.wait_for_selector("#commBtn272")
                         await import_button.click()
                         
-                        await detail_frame.locator('div[id="modal-dialog-cfgImport"][class*="active"]').wait_for(state="visible")
-                        # await detail_frame.evaluate('document.getElementById("CancelImportCfg").click()')
-                        file_input = await detail_frame.wait_for_selector('input[type="file"]')
-                        self.query_one(f"#stat-job{id}", Static).update("found the input Browse button")
-                        await file_input.set_input_files('config_00-09-f5-2e-55-91_2025-03-06_17-12-51.txt')
+                        try:
+                            modal = await detail_frame.locator('div[id="modal-dialog-cfgImport"][class*="active"]')
+                            modal.wait_for(state="visible")
+                            # await detail_frame.evaluate('document.getElementById("CancelImportCfg").click()')
+                            form = await detail_frame.locator('form[name="ImportConfiguration"]')
+                            self.query_one(f"#stat-job{id}", Static).update("found the form")
+                            await asyncio.sleep(5)
+                        except Exception as e:
+                            Logger.log(f"Error occurred: {e}")
+                        # file_input = await detail_frame.wait_for_selector('form input[type="file"]')
+                        # await file_input.set_input_files('config_00-09-f5-2e-55-91_2025-03-06_17-12-51.txt')
                         
-                        await asyncio.sleep(5)
                         # await detail_frame.evaluate('document.getElementById("ImportCfg").click()')
                         
 
