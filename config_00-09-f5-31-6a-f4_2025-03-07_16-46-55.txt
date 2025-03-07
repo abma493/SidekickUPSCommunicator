@@ -1,0 +1,1832 @@
+Format Version: 1
+
+#### Security Considerations //////////////////////////////////////////////////
+# Notice:
+#   This export file does not contain all of your settings.  For security
+#   reasons, sensitive data settings such as passwords are not printed in
+#   this file.
+#
+#   To use this export file as a complete importable backup, search for the
+#   protected values which are shown as asterisks in this file, replace the
+#   asterisks with your correct values, and uncomment the lines.
+#
+# Warning:
+#   If you add sensitive data settings to this file, then it should be
+#   imported using an HTTPS connection.  This ensures that the file will be
+#   transmitted in encrypted form.
+# /////////////////////////////////////////////////////////////////////////////
+
+#### Begin informational header
+# Date: Fri Mar  7 16:46:55 2025
+#
+# Reboot Directive
+#   In an import file, RebootAfterImport reboots the card automatically after
+#   import.  Delete the line or disable it with a pound sign (#) if you want to
+#   manually reboot the card.
+RebootAfterImport
+# 
+# Board Information:
+#   IPv4 Address:  10.9.14.161
+#   IPv6 Address:  fe80::209:f5ff:fe31:6af4/64
+#   Ethernet MAC:  00:09:f5:31:6a:f4
+#   Serial Number: 01C4
+# 
+# Manufacturing Information:
+#   Agent Model:                 RDU1xx Platform
+#   Agent App Firmware Label:    RDU101_1.8.1.0_0000002
+#   Agent App Firmware Version:  1.8.1.0
+#   Agent App Changelist Number: 0000002
+#   Agent Alternative Firmware Label:    RDU101_1.8.0.0_0000003
+#   Agent Alternative Firmware Version:  1.8.0.0
+#   Agent Boot Firmware Label:   Boot 20221027184422
+#   Agent Boot Firmware Version: 20221027184422
+#   Agent Ethernet MAC:      00:09:f5:31:6a:f4
+#   Agent Serial Number:     01C4
+#   Agent Manufacture Date:  2023-12
+#   Agent Assembly Number:   417714G5
+#   Agent Assembly Revision: 08
+#   Agent Hardware Version:  08
+#   GDD Version:             137698
+# 
+# Card Profile:
+#   MODULE_NAME=RDU-101
+#   NUM_PROTOCOLS=65535
+#   SERIAL_NUMBER=01C4
+#   MANUFACTURE_DATE=2023-12
+#   ASSY_NUMBER=417714G5
+#   ASSY_REVISION=08
+#   HARDWARE_REVISION=08
+# 
+# Managed Device Information 
+# PSI: 2.34 
+# FDM: 47
+# System Model Number (4240): GXT5-1500LVRT2UXL 
+# System Serial Number (4244): 2229801996AFF86 
+# Firmware Version (4335): MCUV230         DSPV200K110 
+# Site Identifier (4247): 00000000000000000000000000000000 
+# Site Equipment Tag Number (4248): 00000000000000000000000000000000 
+# Service Phone Number (4763):  
+# Manufacturer (4333): Vertiv 
+# Manufacture Date (6215): 2022-10-25 
+#
+#### End informational header
+
+[System]
+# System Name
+#   End user assigned name for the system
+#   maximum length: 64
+System Name: "TEST_UPS_1"
+# Contact Information
+#   End user assigned contact information for the system
+#   maximum length: 50
+Contact Information: "Network Team"
+# System Location
+#   End user assigned location of the system
+#   maximum length: 50
+System Location: "TEST UPS"
+# System Description
+#   End user assigned description for the system
+#   maximum length: 50
+System Description: "Vertiv 1"
+# Display Temperature Units
+#   Set display of temperature degree units to either Celsius or Fahrenheit.
+#   0: Celsius
+#   1: Fahrenheit
+Display Temperature Units: 1
+
+[Time Service]
+# Time Source
+#   The type of external source to use for time synchronization.
+#   0: NTP Server
+#   1: Modbus System
+#   2: BACnet System
+#   3: Velocity Management System
+#   4: LIFE (TM) Watch Station
+#   5: YDN23 System
+#   6: Remote Service System
+#   7: Internal Clock
+Time Source: 0
+# Primary NTP Time Server
+#   Hostname or IP address of the primary NTP time source. The maximum length is 64 characters.
+#   maximum length: 64
+Primary NTP Time Server: "ntp.utsa.edu"
+# Backup NTP Time Server
+#   Hostname or IP address of the backup NTP time source. The maximum length is 64 characters.
+#   maximum length: 64
+Backup NTP Time Server: ""
+# NTP Time Sync Rate
+#   Rate at which time will be synchronized with the NTP server, if NTP is the external time source.
+#   0: 1 Hour
+#   1: 12 Hours
+#   2: 24 Hours
+NTP Time Sync Rate: 0
+# Time Zone
+#   Time zone where the device is located.
+#   0: (GMT) UTC
+#   1: (GMT-12:00) International Date Line West
+#   2: (GMT-11:00) UTC-11
+#   3: (GMT-10:00) Hawaii
+#   4: (GMT-09:00) Alaska
+#   5: (GMT-08:00) Pacific Time (US and Canada), Baja California
+#   6: (GMT-07:00) Arizona
+#   7: (GMT-07:00) Chihuahua, La Paz, Mazatlan
+#   8: (GMT-07:00) Mountain Time (US and Canada)
+#   9: (GMT-06:00) Central America
+#   10: (GMT-06:00) Central Time (US and Canada)
+#   11: (GMT-06:00) Guadalajara, Mexico City, Monterrey
+#   12: (GMT-06:00) Saskatchewan
+#   13: (GMT-05:00) Bogota, Lima, Quito
+#   14: (GMT-05:00) Eastern Time (US and Canada)
+#   15: (GMT-05:00) Indiana (East)
+#   16: (GMT-04:30) Caracas
+#   17: (GMT-04:00) Asuncion
+#   18: (GMT-04:00) Atlantic Time (Canada)
+#   19: (GMT-04:00) Cuiaba
+#   20: (GMT-04:00) Georgetown, La Paz, Manaus, San Juan
+#   21: (GMT-04:00) Santiago
+#   22: (GMT-03:30) Newfoundland
+#   23: (GMT-03:00) Brasilia
+#   24: (GMT-03:00) Buenos Aires
+#   25: (GMT-03:00) Cayenne, Fortaleza
+#   26: (GMT-03:00) Greenland
+#   27: (GMT-03:00) Montevideo
+#   28: (GMT-03:00) Salvador
+#   29: (GMT-02:00) UTC-2
+#   30: (GMT-01:00) Azores
+#   31: (GMT-01:00) Cape Verde Is.
+#   32: (GMT) Casablanca
+#   33: (GMT) Dublin, Edinburgh, Lisbon, London
+#   34: (GMT) Monrovia, Reykjavik
+#   35: (GMT+01:00) Amsterdam, Berlin, Bern, Rome, Stockholm, Vienna
+#   36: (GMT+01:00) Belgrade, Bratislava, Budapest, Ljubljana, Prague
+#   37: (GMT+01:00) Brussels, Copenhagen, Madrid, Paris
+#   38: (GMT+01:00) Sarajevo, Skopje, Warsaw, Zagreb
+#   39: (GMT+01:00) West Central Africa
+#   40: (GMT+01:00) Windhoek
+#   41: (GMT+02:00) Athens, Bucharest, Istanbul
+#   42: (GMT+02:00) Beirut
+#   43: (GMT+02:00) Cairo
+#   44: (GMT+02:00) Harare, Pretoria
+#   45: (GMT+02:00) Helsinki, Kyiv, Riga, Sofia, Tallinn, Vilnius
+#   46: (GMT+02:00) Jerusalem
+#   47: (GMT+02:00) Nicosia
+#   48: (GMT+03:00) Baghdad
+#   49: (GMT+03:00) Kaliningrad, Minsk
+#   50: (GMT+03:00) Kuwait, Riyadh
+#   51: (GMT+03:00) Nairobi
+#   52: (GMT+03:30) Tehran
+#   53: (GMT+04:00) Abu Dhabi, Muscat
+#   54: (GMT+04:00) Baku
+#   55: (GMT+04:00) Moscow, St. Petersburg, Volgograd
+#   56: (GMT+04:00) Port Louis
+#   57: (GMT+04:00) Tbilisi
+#   58: (GMT+04:00) Yerevan
+#   59: (GMT+04:30) Kabul
+#   60: (GMT+05:00) Islamabad, Karachi, Tashkent
+#   61: (GMT+05:30) Chennai, Kolkata, Mumbai, New Delhi
+#   62: (GMT+05:30) Sri Jayawardenepura
+#   63: (GMT+05:45) Kathmandu
+#   64: (GMT+06:00) Astana
+#   65: (GMT+06:00) Dhaka
+#   66: (GMT+06:00) Ekaterinburg
+#   67: (GMT+06:30) Yangon
+#   68: (GMT+07:00) Bangkok, Hanoi, Jakarta
+#   69: (GMT+07:00) Novosibirsk
+#   70: (GMT+08:00) Beijing, Chongqing, Hong Kong, Urumqi
+#   71: (GMT+08:00) Krasnoyarsk
+#   72: (GMT+08:00) Kuala Lumpur, Singapore
+#   73: (GMT+08:00) Perth
+#   74: (GMT+08:00) Taipei
+#   75: (GMT+08:00) Ulaanbaatar
+#   76: (GMT+09:00) Irkutsk
+#   77: (GMT+09:00) Osaka, Sapporo, Tokyo
+#   78: (GMT+09:00) Seoul
+#   79: (GMT+09:30) Adelaide
+#   80: (GMT+09:30) Darwin
+#   81: (GMT+10:00) Brisbane
+#   82: (GMT+10:00) Canberra, Melbourne, Sydney
+#   83: (GMT+10:00) Guam, Port Moresby
+#   84: (GMT+10:00) Hobart
+#   85: (GMT+10:00) Yakutsk
+#   86: (GMT+11:00) Solomon Is., New Caledonia
+#   87: (GMT+11:00) Vladivostok
+#   88: (GMT+12:00) Auckland, Wellington
+#   89: (GMT+12:00) Fiji
+#   90: (GMT+12:00) Magadan
+#   91: (GMT+12:00) UTC+12
+#   92: (GMT+13:00) Nuku'alofa
+#   93: (GMT+13:00) Samoa
+#   94: (GMT+14:00) Kiritimati, Christmas Island, Kiribati
+Time Zone: 10
+# Enable Auto-Sync To Managed Device
+#   Enable automatically writing time to the managed device.
+#   0: disabled
+#   1: enabled
+Enable Auto-Sync To Managed Device: 0
+# Managed Device Auto-Sync Rate
+#   Rate at which time will be written to the managed device, if an external time source has been selected.
+#   0: 1 Hour
+#   1: 12 Hours
+#   2: 24 Hours
+Managed Device Auto-Sync Rate: 0
+
+[Console Access]
+# USB Serial Console
+#   Serial Console will be available through the USB port if enabled.  This selection will be automatically disabled if any serial protocol utilizing the same USB port is enabled (Modbus RTU, Bacnet 485, YDN23).
+#   0: disabled
+#   1: enabled
+USB Serial Console: 1
+
+[SyslogService]
+# Enable Remote Syslog Service
+#   Enable Remote Syslog Service
+#   0: disabled
+#   1: enabled
+Enable Remote Syslog Service: 0
+# Syslog Server
+#   Remote Syslog Server  <hostname or IP address>
+#   maximum length: 64
+Syslog Server: ""
+# Remote Syslog Server Port
+#   Remote Syslog Server Port
+#   range: 0 to 32767
+Remote Syslog Server Port: 514
+
+[Authentication.LDAP]
+# LDAP Authentication Type
+#   LDAP Authentication Type
+#   0: Disabled
+#   1: LDAP then Local
+#   2: LDAP - Local if server down
+#   3: LDAP Only
+LDAP Authentication Type: 0
+# LDAP Server
+#   The IP address of the LDAP Server
+#   maximum length: 64
+LDAP Server: ""
+# LDAP Base
+#   Base Distinguished Name which gives the LDAP path to the location of the user accounts.
+#   maximum length: 125
+LDAP Base: ""
+# LDAP Secure
+#   LDAP SSL Mode
+#   0: On
+#   1: Off
+#   2: Start_TLS
+LDAP Secure: 0
+# Database Username
+#   The Bind Distinguished Name for a service account used to access the LDAP server.
+#   maximum length: 64
+Database Username: ""
+# Database Password
+#   Password for the LDAP service account used to access the LDAP server.
+#   maximum length: 32
+Database Password: ""
+# Login Attributes
+#   The account attribute that will be used to authenticate user credentials.  (ex: CN)
+#   maximum length: 32
+Login Attributes: ""
+
+[Authentication.RADIUS]
+# Radius Authentication Type
+#   Radius Authentication Type
+#   0: Disabled
+#   1: RADIUS then Local
+#   2: RADIUS - Local if server down
+#   3: RADIUS Only
+Radius Authentication Type: 0
+# Primary Authentication Server
+#   IP address of primary RADIUS authentication server.
+#   maximum length: 64
+Primary Authentication Server: ""
+# Secondary Authentication Server
+#   IP address of secondary RADIUS authentication server.
+#   maximum length: 64
+Secondary Authentication Server: ""
+# Secret
+#   The shared secret that serves as a password between client and server.
+#   maximum length: 32
+Secret: ""
+# Timeout
+#   The timeout for an authentication query to be answered.
+#   range: 0 to 65535 sec
+Timeout: 3
+# Retries
+#   The number of times a RADIUS server is tried before another is contacted.
+#   range: 0 to 65535
+Retries: 2
+
+[Authentication.TACACS]
+# TACACS+ Authentication Type
+#   TACACS+ Authentication Type
+#   0: Disabled
+#   1: TACACS+ then Local
+#   2: TACACS+ - Local if server down
+#   3: TACACS+ Only
+TACACS+ Authentication Type: 0
+# Primary Authentication Server
+#   IP address of the primary TACACS+ server.
+#   maximum length: 64
+Primary Authentication Server: ""
+# Secondary Authentication Server
+#   IP address of the secondary TACACS+ server.
+#   maximum length: 64
+Secondary Authentication Server: ""
+# Secret
+#   The shared secret that serves as a password between client and server.
+#   maximum length: 32
+Secret: ""
+# Timeout
+#   The timeout for an authentication query to be answered.
+#   range: 0 to 65535 sec
+Timeout: 10
+# Retries
+#   The number of times a TACACS server is tried before another is contacted.
+#   range: 0 to 65535
+Retries: 2
+# Version
+#   Minor version
+#   0: V0
+#   1: V1
+#   2: V0/V1
+#   3: V1/V0
+Version: 0
+
+[Authentication.Kerberos]
+# Kerberos Authentication Type
+#   Kerberos Authentication Type
+#   0: Disabled
+#   1: Kerberos then Local
+#   2: Kerberos - Local if server down
+#   3: Kerberos Only
+Kerberos Authentication Type: 0
+# Server (Realm)
+#   The IP address of the Kerberos server.
+#   maximum length: 64
+Server (Realm): ""
+# Realm Domain Name
+#   Name of the realm of systems that share the Kerberos database
+#   maximum length: 64
+Realm Domain Name: ""
+# Domain Name
+#   Domain of the master system where the Kerberos database resides
+#   maximum length: 64
+Domain Name: ""
+
+[Local User.1]
+# Username
+#   Min 2 to Max 30 case-sensitive, printable ASCII characters (excluding: \:'&lt;&gt;~?#, double quote, and space).
+#   maximum length: 30
+#   minimum length if not blank*: 1
+#   *This setting can be cleared with a blank string.
+Username: "admin"
+# User Password
+#   Min 8 to Max 30 case-sensitive, printable ASCII characters (excluding: \:'&lt;&gt;~?#, double quote, and space). Must contain a combination of upper and lower case, digit and special characters, but not Username.
+#   maximum length: 30
+#   minimum length if not blank*: 1
+#   *This setting can be cleared with a blank string.
+# ** Protected value not displayed.  Uncomment following line to import new value:
+# User Password: "********"
+# Authorization for User
+#   User access privilege level - No Access, General User, Gapi Access, Administrator
+#   0: No Access
+#   1: General User
+#   2: Administrator
+#   3: Gapi Access
+Authorization for User: 2
+
+[Local User.2]
+Username: ""
+User Password: ""
+Authorization for User: 0
+
+[Local User.3]
+Username: ""
+User Password: ""
+Authorization for User: 0
+
+[Local User.4]
+Username: ""
+User Password: ""
+Authorization for User: 0
+
+[Local User.5]
+Username: ""
+User Password: ""
+Authorization for User: 0
+
+[Local User.6]
+Username: ""
+User Password: ""
+Authorization for User: 0
+
+[Local User.7]
+Username: ""
+User Password: ""
+Authorization for User: 0
+
+[Local User.8]
+Username: ""
+User Password: ""
+Authorization for User: 0
+
+[Local User.9]
+Username: ""
+User Password: ""
+Authorization for User: 0
+
+[Local User.10]
+Username: ""
+User Password: ""
+Authorization for User: 0
+
+[Network]
+# Speed Duplex
+#   Speed and duplex configuration of the ethernet port.
+#   0: Auto
+#   1: 10Mbs/Half Duplex
+#   2: 10Mbs/Full Duplex
+#   3: 100Mbs/Half Duplex
+#   4: 100Mbs/Full Duplex
+Speed Duplex: 0
+# Hostname
+#   Hostname that identifies this network node. Enter the hostname only, not the fully-qualified domain name. If a user defined entry is deleted, the default hostname will be restored.
+#   maximum length: 64
+Hostname: "COOL_TEST_UPS_1"
+# Domain Name Suffix List
+#   List of domain name suffixes used for DNS resolution of hostnames. Suffixes must be separated by spaces. Example: domain1.org domain2.org
+#   maximum length: 100
+Domain Name Suffix List: ""
+# Telnet Server (not secure)
+#   Enable or disable telnet server.  Telnet is not considered secure because all data is sent unencrypted, including passwords.
+#   0: disabled
+#   1: enabled
+Telnet Server (not secure): 0
+# SSHv2 Server
+#   Enable or disable SSHv2 server
+#   0: disabled
+#   1: enabled
+SSHv2 Server: 1
+
+[Network.IPv4]
+# IPv4 Protocol
+#   Enable or disable IPv4.
+#   0: disabled
+#   1: enabled
+IPv4 Protocol: 1
+# IP Address Method
+#   Method by which the system acquires a network address.
+#   0: Static
+#   1: DHCP
+#   2: BOOTP
+IP Address Method: 1
+# Static IP Address
+#   Manually assigned network address.
+#   IP address in standard form
+Static IP Address: 10.9.14.161
+# Subnet Mask
+#   Manually assigned network mask.
+#   IP address in standard form
+Subnet Mask: 255.255.255.0
+# Default Gateway
+#   IP address of the gateway for network traffic destined for other networks or subnets.
+#   IP address in standard form
+Default Gateway: 
+# DNS Server Address Source
+#   The means by which IPv4 DNS server addresses are obtained. None: disable DNS, Automatic: get DNS server addresses remotely, Configured: use configured Primary and Secondary servers only.
+#   0: None
+#   1: Automatic
+#   2: Configured
+DNS Server Address Source: 2
+# Primary DNS Server
+#   IP address of the primary DNS server.
+#   IP address in standard form
+Primary DNS Server: 
+# Secondary DNS Server
+#   IP address of the secondary DNS server.
+#   IP address in standard form
+Secondary DNS Server: 
+# NTP Server (DHCP Option 42)
+#   Enable or disable using IPv4 NTP servers, option 42, from a DHCP response.
+#   0: disabled
+#   1: enabled
+NTP Server (DHCP Option 42): 0
+
+[Network.IPv6]
+# IPv6 Protocol
+#   Enable or disable IPv6.
+#   0: disabled
+#   1: enabled
+IPv6 Protocol: 1
+# IP Address Method
+#   Method by which the system acquires a network address.
+#   0: Static
+#   1: Auto
+IP Address Method: 1
+# Static IP Address
+#   Manually assigned network address.
+#   IP address in standard form
+Static IP Address: 
+# Prefix Length
+#   Prefix length for the IPv6 subnet.
+#   range: 0 to 128
+Prefix Length: 64
+# Default Gateway
+#   IP address of the gateway for network traffic destined for other networks or subnets.
+#   IP address in standard form
+Default Gateway: 
+# DNS Server Address Source
+#   The means by which IPv6 DNS server addresses are obtained. None: disable DNS, Automatic: get DNS server addresses remotely, Configured: use configured Primary and Secondary servers only.
+#   0: None
+#   1: Automatic
+#   2: Configured
+DNS Server Address Source: 1
+# Primary DNS Server
+#   IP address of the primary DNS server.
+#   IP address in standard form
+Primary DNS Server: 
+# Secondary DNS Server
+#   IP address of the secondary DNS server.
+#   IP address in standard form
+Secondary DNS Server: 
+
+[Network.LLDP]
+# LLDP Enable Mode
+#   LLDP Enable Mode
+#   0: disabled
+#   1: enabled
+LLDP Enable Mode: 0
+# LLDP Interval
+#   LLDP Interval. The minimum time is 30 seconds.
+#   range: 30 to 65535 sec
+LLDP Interval: 30
+# LLDP Time-To-Live
+#   LLDP Time-To-Live. The minimum time is 60 seconds.
+#   range: 60 to 65535 sec
+LLDP Time-To-Live: 120
+# LLDP System Description
+#   LLDP System Description. The maximum length is 32 characters.
+#   maximum length: 32
+LLDP System Description: ""
+# LLDP Username
+#   LLDP Username. The maximum length is 32 characters.
+#   maximum length: 32
+LLDP Username: ""
+# LLDP Password
+#   LLDP Password. The maximum length is 32 characters.
+#   maximum length: 32
+LLDP Password: ""
+
+[Web Server]
+# Web Server Protocol
+#   Select the operation mode of the Web Server
+#   1: HTTP only
+#   2: HTTPS w/redirect
+#   3: HTTPS only
+Web Server Protocol: 1
+# HTTP Port
+#   Standard web port - communication is not encrypted.
+#   range: 1 to 65535
+HTTP Port: 80
+# HTTPS Port
+#   Standard secure web port - all communication is encrypted.
+#   range: 1 to 65535
+HTTPS Port: 443
+# Password Protected Site
+#   When enabled, all access to this site requires login.  When disabled, login is required only to enter data or initiate actions.
+#   0: disabled
+#   1: enabled
+Password Protected Site: 1
+# Remote Write Access
+#   When disabled, an Autoconfiguration IPv4 address (169.254.x.x) is required for web-browser-based configuration. This requires a direct PC-to-card connection.
+#   0: disabled
+#   1: enabled
+Remote Write Access: 1
+# Session Idle Timeout
+#   The duration of time with no user activity. Upon exceeding the duration the session times out and the user is logged out.
+#   range: 1 to 600 min
+Session Idle Timeout: 5
+
+[Web Server.SSL Certificate]
+# Generate Self-Signed SSL Certificate Mode
+#   The modes to generate a self-signed SSL certificate:  Use Default Values or Use Configured Settings.
+#   0: Use Default Values
+#   1: Use Configured Settings
+Generate Self-Signed SSL Certificate Mode: 0
+# Common Name
+#   Fully qualified domain name that clients will use to reach the server.
+#   maximum length: 64
+Common Name: ""
+# Organization
+#   Name of the organization or company.
+#   maximum length: 64
+Organization: ""
+# Organizational Unit
+#   Name of the organizational unit or company division.
+#   maximum length: 64
+Organizational Unit: ""
+# City or Locality
+#   City or locality of the organization.
+#   maximum length: 64
+City or Locality: ""
+# State or Province
+#   State or province of the organization.
+#   maximum length: 64
+State or Province: ""
+# Country Code
+#   Country code (two-letter abbreviation) of the organization.
+#   maximum length: 2
+Country Code: ""
+# Email Address
+#   Email address of contact in the organization.
+#   maximum length: 64
+Email Address: ""
+
+[LIFE]
+# LIFE (TM) Technology
+#   Enable or disable the LIFE (TM) Technology.
+#   0: disabled
+#   1: enabled
+LIFE (TM) Technology: 0
+# System Serial Number Override
+#   When enabled, the user-configured System Serial Number will override the serial number from the device.
+#   0: disabled
+#   1: enabled
+System Serial Number Override: 0
+# System Serial Number
+#   System serial number
+#   maximum length: 30
+System Serial Number: ""
+# Site Equipment Tag Number
+#   Site equipment tag number
+#   maximum length: 32
+Site Equipment Tag Number: ""
+# Site Identifier
+#   Site identifier
+#   maximum length: 32
+Site Identifier: ""
+# Answer Incoming Call
+#   Enable answering of LIFE (TM) Technology incoming calls.
+#   0: disabled
+#   1: enabled
+Answer Incoming Call: 0
+# Next Call Date and Time (UTC)
+#   Date and time (in UTC) of next call to make to the LIFE (TM) Watch Station server. Format: YYYY-MM-DD HH:MM:SS
+#   maximum length: 50
+Next Call Date and Time (UTC): ""
+# Call Interval Days
+#   Number of days between routine LIFE (TM) Watch Station calls. The sum of the three Call Interval settings is used to compute the value of the Next Call Date and Time.
+#   range: 0 to 30
+Call Interval Days: 1
+# Call Interval Hours
+#   Number of hours between routine LIFE (TM) Watch Station calls. The sum of the three Call Interval settings is used to compute the value of the Next Call Date and Time.
+#   range: 0 to 23
+Call Interval Hours: 0
+# Call Interval Minutes
+#   Number of minutes between routine LIFE (TM) Watch Station calls. The sum of the three Call Interval settings is used to compute the value of the Next Call Date and Time.
+#   range: 0 to 59
+Call Interval Minutes: 0
+# Call Trials Number
+#   Number of times to retry a failed call before rescheduling the call.
+#   range: 0 to 5
+Call Trials Number: 2
+
+[LIFE.UPS State SMS Configuration]
+# Primary Mains Failure SMS
+#   Enable or disable sending of an SMS when Primary Mains fail.
+#   0: disabled
+#   1: enabled
+Primary Mains Failure SMS: 1
+# Primary Mains Failure SMS Delay
+#   Time in seconds to delay when sending an SMS after a Primary Mains failure if the condition still exists.
+#   range: 5 to 3600 sec
+Primary Mains Failure SMS Delay: 3599
+# Primary Mains Restored SMS
+#   Enable or disable sending of an SMS when Primary Mains are restored.
+#   0: disabled
+#   1: enabled
+Primary Mains Restored SMS: 1
+# Primary Mains Restored SMS Delay
+#   Time in seconds to delay when sending an SMS after Primary Mains are restored if the condition still exists.
+#   range: 5 to 3600 sec
+Primary Mains Restored SMS Delay: 3599
+# Bypass Mains Failure SMS
+#   Enable or disable sending of an SMS when Bypass Mains fail.
+#   0: disabled
+#   1: enabled
+Bypass Mains Failure SMS: 1
+# Bypass Mains Failure SMS Delay
+#   Time in seconds to delay when sending an SMS after a Bypass Mains failure if the condition still exists.
+#   range: 5 to 3600 sec
+Bypass Mains Failure SMS Delay: 3599
+# Load On Bypass SMS
+#   Enable or disable sending of an SMS when Load is on Bypass.
+#   0: disabled
+#   1: enabled
+Load On Bypass SMS: 1
+# Load On Bypass SMS Delay
+#   Time in seconds to delay when sending an SMS after a Load is on Bypass if the condition still exists.
+#   range: 5 to 3600 sec
+Load On Bypass SMS Delay: 3599
+
+[LIFE.Gate]
+# Proxy Enable
+#   Enable or disable connection to a proxy server in association with the LIFE (TM) Gate.
+#   0: disabled
+#   1: enabled
+Proxy Enable: 0
+# Proxy Authentication
+#   Enable or disable LIFE (TM) Gate proxy authentication.
+#   0: disabled
+#   1: enabled
+Proxy Authentication: 0
+# Proxy Hostname or IP Address
+#   The LIFE (TM) Gate proxy hostname or IP address
+#   maximum length: 64
+Proxy Hostname or IP Address: ""
+# Proxy IP Port Number
+#   The LIFE (TM) Gate proxy IP port number.
+#   range: 1 to 65535
+Proxy IP Port Number: 80
+# Proxy Username
+#   The LIFE (TM) Gate proxy username.
+#   maximum length: 50
+Proxy Username: ""
+# Proxy User Password
+#   The LIFE (TM) Gate proxy user password.
+#   maximum length: 30
+Proxy User Password: ""
+# LIFE (TM) Gate Hostname or IP Address
+#   The LIFE (TM) Gate hostname or IP address.
+#   maximum length: 64
+LIFE (TM) Gate Hostname or IP Address: "198.177.232.93"
+# LIFE (TM) Gate IP Port Number
+#   The LIFE (TM) Gate IP port number.
+#   range: 1 to 65535
+LIFE (TM) Gate IP Port Number: 80
+
+[LIFE.Advanced]
+# Service Mode
+#   Enable or disable LIFE (TM) service mode.
+#   0: disabled
+#   1: enabled
+Service Mode: 0
+
+[Remote Services]
+# Remote Service
+#   Enable or disable the remote service.
+#   0: Disabled
+#   1: Enabled
+Remote Service: 0
+# Device Data Sampling
+#   Enable or disable the device data sampling.
+#   0: Disabled
+#   1: Enabled
+Device Data Sampling: 0
+# Device Serial Number
+#   Enter the serial number to use for the device.  This value is ignored unless the Device Serial Number Override checkbox is checked.
+#   maximum length: 32
+Device Serial Number: ""
+# Device Serial Number Override
+#   If enabled use the web page entered serial number instead of the serial number obtained from the managed device.
+#   0: Disabled
+#   1: Enabled
+Device Serial Number Override: 0
+# Site Equipment Tag Number
+#   Enter the site equipment tag number.
+#   maximum length: 32
+Site Equipment Tag Number: ""
+# Site Identifier
+#   Enter the site identifier.
+#   maximum length: 32
+Site Identifier: ""
+# Device Instance ID
+#   Enter the device manufacturer's instance identifier.
+#   maximum length: 32
+Device Instance ID: ""
+# Service Center Country
+#   Select the Service Center Country where this device is serviced
+#   0: 
+#   1: Other
+#   10: Argentina
+#   15: Australia
+#   20: Austria
+#   25: Azerbaijan
+#   30: Botswana
+#   35: Brazil
+#   40: Bulgaria
+#   45: Canada
+#   50: Chile
+#   55: China
+#   60: Czech Republic
+#   65: France
+#   70: Greece
+#   75: Germany
+#   80: India
+#   85: Italy
+#   90: Japan
+#   95: Kazakhstan
+#   100: Lesotho
+#   105: Mexico
+#   110: Mozambique
+#   115: Netherlands
+#   120: Poland
+#   125: Portugal
+#   130: Romania
+#   135: Russia
+#   140: Saudi Arabia
+#   145: Singapore
+#   150: Slovakia
+#   155: South Africa
+#   160: Spain
+#   165: Sweden
+#   170: Thailand
+#   175: Turkey
+#   180: United Arab Emirates
+#   185: United Kingdom
+#   190: United States
+Service Center Country: 0
+
+[Remote Services.Connectivity]
+# Connection retry time
+#   Interval in which to attempt to establish communications with the Remote Service server in the event of a communications failure.
+#   range: 30 to 600 sec
+Connection retry time: 30
+# Proxy Enable
+#   Enable or disable connection to a proxy server with the Remote Service server URL.
+#   0: Disabled
+#   1: Enabled
+Proxy Enable: 0
+# Proxy Authentication
+#   Enable or disable the proxy authentication.
+#   0: Disabled
+#   1: Enabled
+Proxy Authentication: 0
+# Proxy Address
+#   Enter the proxy IP address or URL.
+#   maximum length: 64
+Proxy Address: ""
+# Proxy IP Port Number
+#   Enter the proxy IP port number.
+#   range: 1 to 65535
+Proxy IP Port Number: 80
+# Proxy Username
+#   Enter the proxy username.
+#   maximum length: 50
+Proxy Username: ""
+# Proxy User Password
+#   Enter the proxy user password.
+#   maximum length: 30
+Proxy User Password: ""
+# Remote Service Cloud URL
+#   Enter the Remote Service cloud URL.  Do not prepend http:// or https://.
+#   maximum length: 48
+Remote Service Cloud URL: "mq-service.vertiv.cloud"
+
+[Third Party Integrations.VxRail]
+# VxRail Cluster Shutdown Enable
+#   Enable or disable Third Party Integration with VxRail
+#   0: disabled
+#   1: enabled
+VxRail Cluster Shutdown Enable: 0
+
+[Velocity Protocol]
+# Velocity Protocol IP Access
+#   Enable or disable Velocity Protocol on the Ethernet interface.
+#   0: disabled
+#   1: enabled
+Velocity Protocol IP Access: 0
+# LAN Type
+#   Type of interface for connection to the managed device: IP, Velocity Serial, ESP2, IGM, MB or Autodetect.
+#   0: Velocity Serial
+#   1: ESP2-Internal
+#   2: Autodetect-Internal
+#   3: IP
+#   4: IGM
+#   6: MB-Internal
+LAN Type: 2
+# Node ID (Velocity Serial Only)
+#   The Node ID of the managed device on Velocity Serial LAN.
+#   range: 0 to 255
+Node ID (Velocity Serial Only): 255
+# IP Address (IP Only)
+#   The IP address of the managed device on an IP LAN.
+#   maximum length: 50
+IP Address (IP Only): "0.0.0.0"
+
+[Email Messaging]
+# Email
+#   Enable or disable Email notification.
+#   0: disabled
+#   1: enabled
+Email: 1
+# Email From Address
+#   Sender's email address. In most cases this will be the email address of the person to whom replies should be sent. Example: Support@company.com.
+#   maximum length: 64
+Email From Address: "TEST_UPS_1"
+# Email To Address
+#   Email addresses of one or more recipients.  Addresses should be separated by semicolons.  The maximum length of each address is 64 characters.  The maximum number of characters in the combined list is 125 (including semicolons).
+#   maximum length: 125
+Email To Address: "UPDATE EMAIL"
+# Email Subject Type
+#   Select the source of the message Subject: Default or Custom
+#   0: Default
+#   1: Custom
+Email Subject Type: 1
+# Custom Subject Text
+#   Subject of the message.  This value will default to the event description.
+#   maximum length: 125
+Custom Subject Text: "Alarm Notification"
+# SMTP Server Address
+#   Hostname or IP address of the server used for relaying outgoing messages. The maximum length is 64 characters.
+#   maximum length: 64
+SMTP Server Address: "osmtp.utsa.edu"
+# SMTP Server Port
+#   SMTP server port. Note: Typically the default of 25 should be used.
+#   range: 1 to 65535
+SMTP Server Port: 25
+# SMTP Connection
+#   SMTP server connection type. Clear: Do not use encryption, SSL/TLS: Encryption using SSL/TLS connection, STARTTLS: SSL/TLS encryption initiated using STARTTLS.  The type of connection chosen depends on the capabilities of the SMTP server.
+#   0: Clear
+#   1: SSL/TLS
+#   2: STARTTLS
+SMTP Connection: 0
+# SMTP Authentication
+#   Enable or disable Email SMTP authentication.
+#   0: disabled
+#   1: enabled
+SMTP Authentication: 0
+# SMTP Username
+#   Username to use when Email SMTP authentication is enabled.
+#   maximum length: 125
+SMTP Username: ""
+# SMTP Password
+#   Password to use when Email SMTP authentication is enabled.
+#   maximum length: 125
+SMTP Password: ""
+# Include IP Address in Message
+#   If checked, the IP address of the agent card will be included in outgoing messages.
+#   0: false
+#   1: true
+Include IP Address in Message: 1
+# Include Event Description in Message
+#   If checked, SNMP event description will be included in outgoing messages.
+#   0: false
+#   1: true
+Include Event Description in Message: 1
+# Include Name in Message
+#   If checked, the agent card Name will be included in outgoing messages.
+#   0: false
+#   1: true
+Include Name in Message: 1
+# Include Contact in Message
+#   If checked, the agent card Contact will be included in outgoing messages.
+#   0: false
+#   1: true
+Include Contact in Message: 1
+# Include Location in Message
+#   If checked, the agent card Location will be included in outgoing messages.
+#   0: false
+#   1: true
+Include Location in Message: 1
+# Include Description in Message
+#   If checked, the agent card Description will be included in outgoing messages.
+#   0: false
+#   1: true
+Include Description in Message: 1
+# Include Web Link in Message
+#   If checked, a web link to the agent card and web server listening port number will be included in outgoing messages.
+#   0: false
+#   1: true
+Include Web Link in Message: 0
+# Enable Event Consolidation
+#   If checked, multiple events will be sent per outgoing message.
+#   0: false
+#   1: true
+Enable Event Consolidation: 1
+# Consolidation Time Limit
+#   If Event Consolidation is enabled, a message will be sent when this interval (seconds) has passed since the first buffered event was received.
+#   range: 10 to 120
+Consolidation Time Limit: 60
+# Consolidation Event Limit
+#   If Event Consolidation is enabled, a message will be sent when the number of buffered events reaches this limit.
+#   range: 1 to 50
+Consolidation Event Limit: 20
+
+[SMS Messaging]
+# SMS
+#   Enable or disable Short Message Service (SMS) notification.
+#   0: disabled
+#   1: enabled
+SMS: 0
+# SMS From Address
+#   Sender's email address. In most cases this will be the email address of the person to whom replies should be sent. Example: Support@company.com.
+#   maximum length: 64
+SMS From Address: ""
+# SMS To Address
+#   SMS/Text Message addresses of one or more recipients.  An address is usually a 10-digit phone number followed by an Internet domain name (e.g. 1112223333@MessagingCompanyName.com). Addresses should be separated by semicolons. Note: The maximum length of ea
+#   maximum length: 125
+SMS To Address: ""
+# SMS Subject Type
+#   Select the source of the message Subject: Default or Custom
+#   0: Default
+#   1: Custom
+SMS Subject Type: 0
+# Custom Subject Text
+#   Subject of the message.  This value will default to the event description.
+#   maximum length: 125
+Custom Subject Text: "DEFAULT_SUBJECT"
+# SMTP Server Address
+#   Hostname or IP address of the server used for relaying outgoing messages. The maximum length is 64 characters.
+#   maximum length: 64
+SMTP Server Address: "0.0.0.0"
+# SMTP Server Port
+#   SMTP server port. Note: Typically the default of 25 should be used.
+#   range: 1 to 65535
+SMTP Server Port: 25
+# SMTP Connection
+#   SMTP server connection type. Clear: Do not use encryption, SSL/TLS: Encryption using SSL/TLS connection, STARTTLS: SSL/TLS encryption initiated using STARTTLS.  The type of connection chosen depends on the capabilities of the SMTP server.
+#   0: Clear
+#   1: SSL/TLS
+#   2: STARTTLS
+SMTP Connection: 0
+# SMTP Authentication
+#   Enable or disable SMS SMTP authentication.
+#   0: disabled
+#   1: enabled
+SMTP Authentication: 0
+# SMTP Username
+#   Username to use when SMS SMTP authentication is enabled.
+#   maximum length: 125
+SMTP Username: ""
+# SMTP Password
+#   Password to use when SMS SMTP authentication is enabled.
+#   maximum length: 125
+SMTP Password: ""
+# Include IP Address in Message
+#   If checked, the IP address of the agent card will be included in outgoing messages.
+#   0: false
+#   1: true
+Include IP Address in Message: 1
+# Include Event Description in Message
+#   If checked, SNMP event description will be included in outgoing messages.
+#   0: false
+#   1: true
+Include Event Description in Message: 1
+# Include Name in Message
+#   If checked, the agent card Name will be included in outgoing messages.
+#   0: false
+#   1: true
+Include Name in Message: 0
+# Include Contact in Message
+#   If checked, the agent card Contact will be included in outgoing messages.
+#   0: false
+#   1: true
+Include Contact in Message: 0
+# Include Location in Message
+#   If checked, the agent card Location will be included in outgoing messages.
+#   0: false
+#   1: true
+Include Location in Message: 0
+# Include Description in Message
+#   If checked, the agent card Description will be included in outgoing messages.
+#   0: false
+#   1: true
+Include Description in Message: 0
+# Include Web Link in Message
+#   If checked, a web link to the agent card and web server listening port number will be included in outgoing messages.
+#   0: false
+#   1: true
+Include Web Link in Message: 0
+# Enable Event Consolidation
+#   If checked, multiple events will be sent per outgoing message.
+#   0: false
+#   1: true
+Enable Event Consolidation: 1
+# Consolidation Time Limit
+#   If Event Consolidation is enabled, a message will be sent when this interval (seconds) has passed since the first buffered event was received.
+#   range: 10 to 120
+Consolidation Time Limit: 60
+# Consolidation Event Limit
+#   If Event Consolidation is enabled, a message will be sent when the number of buffered events reaches this limit.
+#   range: 1 to 50
+Consolidation Event Limit: 20
+
+[BACnet]
+# BACnet Protocol
+#   Enable or disable the BACnet Server.
+#   0: Disabled
+#   1: Enabled
+BACnet Protocol: 0
+# Managed Device Write Access
+#   Enable or disable the BACnet server to write to the managed device.
+#   0: Read Only
+#   1: Read/Write
+Managed Device Write Access: 0
+# BACnet Interface
+#   BACnet server interface: BACnet IP or BACnet MSTP
+#   0: BACnet IP
+#   1: BACnet MSTP
+BACnet Interface: 0
+# Device Object Instance Number
+#   The instance number of the BACnet server's device object.
+#   range: 0 to 4194302
+Device Object Instance Number: 1130000
+# Device Object Name
+#   The name of the BACnet server's device object.
+#   maximum length: 50
+Device Object Name: "Device1130000"
+# APDU Timeout
+#   The timeout in milliseconds between APDU retries.
+#   range: 1 to 65535
+APDU Timeout: 3000
+# APDU Retries
+#   The number of times to retransmit an APDU after the initial attempt.
+#   range: 0 to 8
+APDU Retries: 3
+
+[BACnet.IP]
+# BACnet IP Port Number
+#   The IP port for the BACnet server's UDP/IP connection.
+#   range: 1024 to 49151
+BACnet IP Port Number: 47808
+# Maximum Number of Active COV Subscriptions
+#   The maximum number of simultaneous COV subscriptions permitted by the server.
+#   range: 0 to 65535
+Maximum Number of Active COV Subscriptions: 5000
+# Register as Foreign Device
+#   Enable or disable registration as a foreign device.
+#   0: Disabled
+#   1: Enabled
+Register as Foreign Device: 0
+# IP Address of BBMD
+#   IP Address of the BACnet Broadcast Management Device (BBMD) to be accessed for Foreign Device Registration
+#   IP address in standard form
+IP Address of BBMD: 
+# Foreign Device Time-to-Live
+#   Time to remain in the BBMD Foreign Device table after registration.
+#   range: 10 to 43200 sec
+Foreign Device Time-to-Live: 1800
+
+[BACnet.MSTP]
+# Node ID
+#   The MSTP node ID (MAC) of the BACnet server.
+#   range: 0 to 127
+Node ID: 1
+# Data Rate
+#   The communications rate (bps).
+#   0: 9600
+#   1: 19200
+#   2: 38400
+#   3: 57600
+#   4: 76800
+#   5: 115200
+Data Rate: 2
+# Max Master Address
+#   The maximum node ID (MAC) allowable on the MSTP network.
+#   3: 3
+#   7: 7
+#   15: 15
+#   31: 31
+#   63: 63
+#   127: 127
+Max Master Address: 127
+# Max Info Frames
+#   Maximum number of information frames this node may send before it must pass the token.
+#   range: 1 to 8
+Max Info Frames: 8
+# Maximum Number of Active COV Subscriptions
+#   The maximum number of simultaneous COV subscriptions permitted by the server.
+#   range: 0 to 65535
+Maximum Number of Active COV Subscriptions: 1000
+
+[Modbus]
+# Modbus Protocol
+#   Enable or disable the Modbus Server.
+#   0: Disabled
+#   1: Enabled
+Modbus Protocol: 0
+# Managed Device Write Access
+#   Enable or disable the Modbus server to write to the managed device.
+#   0: Read Only
+#   1: Read/Write
+Managed Device Write Access: 0
+# Modbus Interface
+#   Modbus server interface: Modbus RTU or Modbus TCP.
+#   0: Modbus RTU
+#   1: Modbus TCP
+Modbus Interface: 1
+
+[Modbus.TCP]
+# Limit Network Access Type
+#   Set the Modbus TCP connection option: Open - accept requests from any IP address; Same Subnet - accept requests only from IP addresses on the same subnet as the server; Trusted IP List - accept requests only from IP addresses in the Trusted IP List.
+#   0: Open
+#   1: Same Subnet
+#   2: Trusted IP List
+Limit Network Access Type: 1
+# Port
+#   The port used for Modbus TCP communications.
+#   range: 1 to 65535
+Port: 502
+# Maximum Client Connection Count
+#   The maximum number of simultaneous Modbus TCP connections allowed.
+#   range: 1 to 5
+Maximum Client Connection Count: 4
+
+[Modbus.Trusted IP Address.1]
+# IP Address
+#   An IP address from which a Modbus TCP connection is accepted when Limit Network Access Type is set to Trusted IP List.
+#   IP address in standard form
+IP Address: 
+
+[Modbus.Trusted IP Address.2]
+IP Address: 
+
+[Modbus.Trusted IP Address.3]
+IP Address: 
+
+[Modbus.Trusted IP Address.4]
+IP Address: 
+
+[Modbus.Trusted IP Address.5]
+IP Address: 
+
+[Modbus.RTU]
+# Node ID
+#   Modbus Server ID for the interface. Note: Typically the value should be obtained from your building management supervisor.
+#   range: 1 to 247
+Node ID: 1
+# Data Rate
+#   The communications rate (bps).
+#   0: 9600
+#   1: 19200
+#   2: 38400
+Data Rate: 0
+# Serial Port Parameters
+#   Select parity check (None, Even, Odd) and stop bits (1 or 2) for the 8-bit Modbus RTU characters.
+#   0: 8-N-2
+#   1: 8-E-1
+#   2: 8-O-1
+#   3: 8-N-1 (non-standard)
+#   4: 8-E-2 (non-standard)
+#   5: 8-O-2 (non-standard)
+Serial Port Parameters: 0
+
+[SNMP]
+# SNMP Protocol
+#   Enable or disable the SNMPv1/v2c Server and SNMPv3 Server.
+#   0: Disabled
+#   1: Enabled
+SNMP Protocol: 1
+# SNMPv1/v2c Enable
+#   Enable or disable SNMPv1 and SNMPv2c protocol support.
+#   0: Disabled
+#   1: Enabled
+SNMPv1/v2c Enable: 1
+# SNMPv3 Enable
+#   Enable or disable SNMPv3 protocol support.
+#   0: Disabled
+#   1: Enabled
+SNMPv3 Enable: 1
+# SNMPv3 Engine ID
+#   The current SNMPv3 Engine ID of the agent card.
+#   maximum length: 64
+# ** Read-only data - cannot be imported.
+# SNMPv3 Engine ID: "800001DC030009F5316AF4"
+# Authentication Traps
+#   If enabled, a SNMP Authentication Trap will be sent to all trap targets. Note: Typically this feature is enabled as a security measure to alert a management station that unintended/unauthorized requests are being received.
+#   0: disabled
+#   1: enabled
+Authentication Traps: 0
+# Heartbeat Trap Interval
+#   Select the interval for 'heartbeat traps' to be sent to all trap targets. Note: For these traps, Liebert Global Products LGP MIB must be enabled, but LGP MIB Traps may be enabled or disabled.
+#   0: Disabled
+#   1: 5 minutes
+#   2: 30 minutes
+#   3: 1 hour
+#   4: 4 hours
+#   5: 8 hours
+#   6: 12 hours
+#   7: 24 hours
+Heartbeat Trap Interval: 7
+# RFC-1628 MIB
+#   Enable or disable support for RFC-1628 MIB objects (applies to UPS systems). Note: This setting and RFC-1628 MIB Traps must both be enabled for Multi-Link or Nform support.
+#   0: disabled
+#   1: enabled
+RFC-1628 MIB: 1
+# RFC-1628 MIB Traps
+#   Enable or disable support for RFC-1628 MIB traps (applies to UPS systems). Note: This setting and RFC-1628 MIB must both be enabled for Multi-Link or Nform support.
+#   0: disabled
+#   1: enabled
+RFC-1628 MIB Traps: 1
+# Liebert Global Products (LGP) MIB
+#   Enable or disable support for Liebert Global Products (LGP) MIB objects.
+#   0: disabled
+#   1: enabled
+Liebert Global Products (LGP) MIB: 1
+# LGP MIB Traps
+#   Enable or disable support for Liebert Global Products (LGP) MIB traps. Note: Liebert Global Products (LGP) MIB must also be enabled.
+#   0: disabled
+#   1: enabled
+LGP MIB Traps: 1
+# LGP MIB System Notify Trap
+#   Enable or disable support for LGP System Notification Traps. A trap containing a description of the condition will be sent each time a condition is added to or removed from the Liebert Global Products (LGP) MIB conditions table. Liebert Global Products (LG
+#   0: disabled
+#   1: enabled
+LGP MIB System Notify Trap: 1
+# Include SysName and SysLocation in Traps
+#   If enabled, varbinds containing SysName and SysLocation will be added to all traps.
+#   0: disabled
+#   1: enabled
+Include SysName and SysLocation in Traps: 0
+# SNMPv3 Engine ID Format Type
+#   The SNMPv3 Engine ID will be formed from either the current MAC address (default), or from custom text.
+#   3: MAC Address
+#   4: Text
+SNMPv3 Engine ID Format Type: 3
+# SNMPv3 Engine ID Text
+#   Custom text used to form the SNMPv3 Engine ID when the selected format type is Text.
+#   maximum length: 27
+SNMPv3 Engine ID Text: ""
+
+[SNMPv3 User.1]
+# SNMPv3 User Enable
+#   Enable or disable reading, writing, or sending traps with the user's credentials.
+#   0: disabled
+#   1: enabled
+SNMPv3 User Enable: 1
+# SNMPv3 Username
+#   Username for authentication and privacy settings. Printable characters are allowed with the exception of <, >, colon, semicolon, space, tab, double quote, and question mark.
+#   maximum length: 32
+SNMPv3 Username: "admin"
+# SNMPv3 Access Type
+#   Select the SNMPv3 access type: Read Only, Read/Write, or Traps Only. 
+#   0: Read Only
+#   1: Read/Write
+#   2: Traps Only
+SNMPv3 Access Type: 0
+# SNMPv3 Authentication
+#   Algorithm used for authentication: None, MD5, or SHA-1.
+#   0: None
+#   1: MD5
+#   2: SHA
+SNMPv3 Authentication: 2
+# SNMPv3 Authentication Secret
+#   Password for generation of the SNMPv3 authentication key. Printable characters are allowed with the exception of <, >, colon, tab, double quote, and question mark. Note: The entry must be 8 to 64 characters.
+#   maximum length: 64
+# ** Protected value not displayed.  Uncomment following line to import new value:
+# SNMPv3 Authentication Secret: "********"
+# SNMPv3 Privacy
+#   Algorithm used for encryption: None, DES or AES128.
+#   0: None
+#   1: DES
+#   2: AES
+SNMPv3 Privacy: 0
+# SNMPv3 Privacy Secret
+#   Password for generation of the SNMPv3 privacy key. Printable characters are allowed with the exception of <, >, colon, tab, double quote, and question mark. Note: The entry must be 8 to 64 characters.
+#   maximum length: 64
+SNMPv3 Privacy Secret: ""
+# SNMPv3 Trap Targets
+#   Configure one or more network host destinations for SNMPv3 Traps. Each trap target may be a hostname or an IP address. Multiple targets must be separated by commas ','. Note: Maximum length is 125 characters.
+#   maximum length: 125
+SNMPv3 Trap Targets: ""
+# SNMPv3 Trap Port
+#   The IP port number for SNMPv3 traps.
+#   range: 1 to 65535
+SNMPv3 Trap Port: 162
+
+[SNMPv3 User.2]
+SNMPv3 User Enable: 1
+SNMPv3 Username: "admin_2"
+SNMPv3 Access Type: 1
+SNMPv3 Authentication: 0
+SNMPv3 Authentication Secret: ""
+SNMPv3 Privacy: 0
+SNMPv3 Privacy Secret: ""
+SNMPv3 Trap Targets: ""
+SNMPv3 Trap Port: 161
+
+[SNMPv3 User.3]
+SNMPv3 User Enable: 0
+SNMPv3 Username: ""
+SNMPv3 Access Type: 0
+SNMPv3 Authentication: 0
+SNMPv3 Authentication Secret: ""
+SNMPv3 Privacy: 0
+SNMPv3 Privacy Secret: ""
+SNMPv3 Trap Targets: ""
+SNMPv3 Trap Port: 162
+
+[SNMPv3 User.4]
+SNMPv3 User Enable: 0
+SNMPv3 Username: ""
+SNMPv3 Access Type: 0
+SNMPv3 Authentication: 0
+SNMPv3 Authentication Secret: ""
+SNMPv3 Privacy: 0
+SNMPv3 Privacy Secret: ""
+SNMPv3 Trap Targets: ""
+SNMPv3 Trap Port: 162
+
+[SNMPv3 User.5]
+SNMPv3 User Enable: 0
+SNMPv3 Username: ""
+SNMPv3 Access Type: 0
+SNMPv3 Authentication: 0
+SNMPv3 Authentication Secret: ""
+SNMPv3 Privacy: 0
+SNMPv3 Privacy Secret: ""
+SNMPv3 Trap Targets: ""
+SNMPv3 Trap Port: 162
+
+[SNMPv3 User.6]
+SNMPv3 User Enable: 0
+SNMPv3 Username: ""
+SNMPv3 Access Type: 0
+SNMPv3 Authentication: 0
+SNMPv3 Authentication Secret: ""
+SNMPv3 Privacy: 0
+SNMPv3 Privacy Secret: ""
+SNMPv3 Trap Targets: ""
+SNMPv3 Trap Port: 162
+
+[SNMPv3 User.7]
+SNMPv3 User Enable: 0
+SNMPv3 Username: ""
+SNMPv3 Access Type: 0
+SNMPv3 Authentication: 0
+SNMPv3 Authentication Secret: ""
+SNMPv3 Privacy: 0
+SNMPv3 Privacy Secret: ""
+SNMPv3 Trap Targets: ""
+SNMPv3 Trap Port: 162
+
+[SNMPv3 User.8]
+SNMPv3 User Enable: 0
+SNMPv3 Username: ""
+SNMPv3 Access Type: 0
+SNMPv3 Authentication: 0
+SNMPv3 Authentication Secret: ""
+SNMPv3 Privacy: 0
+SNMPv3 Privacy Secret: ""
+SNMPv3 Trap Targets: ""
+SNMPv3 Trap Port: 162
+
+[SNMPv3 User.9]
+SNMPv3 User Enable: 0
+SNMPv3 Username: ""
+SNMPv3 Access Type: 0
+SNMPv3 Authentication: 0
+SNMPv3 Authentication Secret: ""
+SNMPv3 Privacy: 0
+SNMPv3 Privacy Secret: ""
+SNMPv3 Trap Targets: ""
+SNMPv3 Trap Port: 162
+
+[SNMPv3 User.10]
+SNMPv3 User Enable: 0
+SNMPv3 Username: ""
+SNMPv3 Access Type: 0
+SNMPv3 Authentication: 0
+SNMPv3 Authentication Secret: ""
+SNMPv3 Privacy: 0
+SNMPv3 Privacy Secret: ""
+SNMPv3 Trap Targets: ""
+SNMPv3 Trap Port: 162
+
+[SNMPv3 User.11]
+SNMPv3 User Enable: 0
+SNMPv3 Username: ""
+SNMPv3 Access Type: 0
+SNMPv3 Authentication: 0
+SNMPv3 Authentication Secret: ""
+SNMPv3 Privacy: 0
+SNMPv3 Privacy Secret: ""
+SNMPv3 Trap Targets: ""
+SNMPv3 Trap Port: 162
+
+[SNMPv3 User.12]
+SNMPv3 User Enable: 0
+SNMPv3 Username: ""
+SNMPv3 Access Type: 0
+SNMPv3 Authentication: 0
+SNMPv3 Authentication Secret: ""
+SNMPv3 Privacy: 0
+SNMPv3 Privacy Secret: ""
+SNMPv3 Trap Targets: ""
+SNMPv3 Trap Port: 162
+
+[SNMPv3 User.13]
+SNMPv3 User Enable: 0
+SNMPv3 Username: ""
+SNMPv3 Access Type: 0
+SNMPv3 Authentication: 0
+SNMPv3 Authentication Secret: ""
+SNMPv3 Privacy: 0
+SNMPv3 Privacy Secret: ""
+SNMPv3 Trap Targets: ""
+SNMPv3 Trap Port: 162
+
+[SNMPv3 User.14]
+SNMPv3 User Enable: 0
+SNMPv3 Username: ""
+SNMPv3 Access Type: 0
+SNMPv3 Authentication: 0
+SNMPv3 Authentication Secret: ""
+SNMPv3 Privacy: 0
+SNMPv3 Privacy Secret: ""
+SNMPv3 Trap Targets: ""
+SNMPv3 Trap Port: 162
+
+[SNMPv3 User.15]
+SNMPv3 User Enable: 0
+SNMPv3 Username: ""
+SNMPv3 Access Type: 0
+SNMPv3 Authentication: 0
+SNMPv3 Authentication Secret: ""
+SNMPv3 Privacy: 0
+SNMPv3 Privacy Secret: ""
+SNMPv3 Trap Targets: ""
+SNMPv3 Trap Port: 162
+
+[SNMPv3 User.16]
+SNMPv3 User Enable: 0
+SNMPv3 Username: ""
+SNMPv3 Access Type: 0
+SNMPv3 Authentication: 0
+SNMPv3 Authentication Secret: ""
+SNMPv3 Privacy: 0
+SNMPv3 Privacy Secret: ""
+SNMPv3 Trap Targets: ""
+SNMPv3 Trap Port: 162
+
+[SNMPv3 User.17]
+SNMPv3 User Enable: 0
+SNMPv3 Username: ""
+SNMPv3 Access Type: 0
+SNMPv3 Authentication: 0
+SNMPv3 Authentication Secret: ""
+SNMPv3 Privacy: 0
+SNMPv3 Privacy Secret: ""
+SNMPv3 Trap Targets: ""
+SNMPv3 Trap Port: 162
+
+[SNMPv3 User.18]
+SNMPv3 User Enable: 0
+SNMPv3 Username: ""
+SNMPv3 Access Type: 0
+SNMPv3 Authentication: 0
+SNMPv3 Authentication Secret: ""
+SNMPv3 Privacy: 0
+SNMPv3 Privacy Secret: ""
+SNMPv3 Trap Targets: ""
+SNMPv3 Trap Port: 162
+
+[SNMPv3 User.19]
+SNMPv3 User Enable: 0
+SNMPv3 Username: ""
+SNMPv3 Access Type: 0
+SNMPv3 Authentication: 0
+SNMPv3 Authentication Secret: ""
+SNMPv3 Privacy: 0
+SNMPv3 Privacy Secret: ""
+SNMPv3 Trap Targets: ""
+SNMPv3 Trap Port: 162
+
+[SNMPv3 User.20]
+SNMPv3 User Enable: 0
+SNMPv3 Username: ""
+SNMPv3 Access Type: 0
+SNMPv3 Authentication: 0
+SNMPv3 Authentication Secret: ""
+SNMPv3 Privacy: 0
+SNMPv3 Privacy Secret: ""
+SNMPv3 Trap Targets: ""
+SNMPv3 Trap Port: 162
+
+[SNMPv1 Trap.1]
+# SNMP Trap Target
+#   Configure a network host destination for SNMPv1 Traps. The trap target may be a hostname or an IP address. Note: Maximum length is 125 characters.
+#   maximum length: 125
+SNMP Trap Target: "10.250.0.82"
+# SNMP Trap Port
+#   Port on the trap target to which to send SNMPv1 traps.
+#   range: 1 to 65535
+SNMP Trap Port: 162
+# SNMP Trap Community String
+#   Password string used by the trap target to authenticate traps. Printable characters are allowed with the exception of <, >, comma, semicolon, and space. Note: Maximum length is 32 characters.
+#   maximum length: 32
+SNMP Trap Community String: ""
+
+[SNMPv1 Trap.2]
+SNMP Trap Target: ""
+SNMP Trap Port: 162
+SNMP Trap Community String: ""
+
+[SNMPv1 Trap.3]
+SNMP Trap Target: ""
+SNMP Trap Port: 162
+SNMP Trap Community String: ""
+
+[SNMPv1 Trap.4]
+SNMP Trap Target: ""
+SNMP Trap Port: 162
+SNMP Trap Community String: ""
+
+[SNMPv1 Trap.5]
+SNMP Trap Target: ""
+SNMP Trap Port: 162
+SNMP Trap Community String: ""
+
+[SNMPv1 Trap.6]
+SNMP Trap Target: ""
+SNMP Trap Port: 162
+SNMP Trap Community String: ""
+
+[SNMPv1 Trap.7]
+SNMP Trap Target: ""
+SNMP Trap Port: 162
+SNMP Trap Community String: ""
+
+[SNMPv1 Trap.8]
+SNMP Trap Target: ""
+SNMP Trap Port: 162
+SNMP Trap Community String: ""
+
+[SNMPv1 Trap.9]
+SNMP Trap Target: ""
+SNMP Trap Port: 162
+SNMP Trap Community String: ""
+
+[SNMPv1 Trap.10]
+SNMP Trap Target: ""
+SNMP Trap Port: 162
+SNMP Trap Community String: ""
+
+[SNMPv1 Trap.11]
+SNMP Trap Target: ""
+SNMP Trap Port: 162
+SNMP Trap Community String: ""
+
+[SNMPv1 Trap.12]
+SNMP Trap Target: ""
+SNMP Trap Port: 162
+SNMP Trap Community String: ""
+
+[SNMPv1 Trap.13]
+SNMP Trap Target: ""
+SNMP Trap Port: 162
+SNMP Trap Community String: ""
+
+[SNMPv1 Trap.14]
+SNMP Trap Target: ""
+SNMP Trap Port: 162
+SNMP Trap Community String: ""
+
+[SNMPv1 Trap.15]
+SNMP Trap Target: ""
+SNMP Trap Port: 162
+SNMP Trap Community String: ""
+
+[SNMPv1 Trap.16]
+SNMP Trap Target: ""
+SNMP Trap Port: 162
+SNMP Trap Community String: ""
+
+[SNMPv1 Trap.17]
+SNMP Trap Target: ""
+SNMP Trap Port: 162
+SNMP Trap Community String: ""
+
+[SNMPv1 Trap.18]
+SNMP Trap Target: ""
+SNMP Trap Port: 162
+SNMP Trap Community String: ""
+
+[SNMPv1 Trap.19]
+SNMP Trap Target: ""
+SNMP Trap Port: 162
+SNMP Trap Community String: ""
+
+[SNMPv1 Trap.20]
+SNMP Trap Target: ""
+SNMP Trap Port: 162
+SNMP Trap Community String: ""
+
+[SNMPv1/v2c Access.1]
+# SNMP Access Host
+#   Configure a network host to be given read or write access. The access host may be a hostname or an IP address (use 0.0.0.0 to accept queries from any IPv4 address, '::' to accept any IPv6 address, or leave blank to accept either). Note: Maximum length is 1
+#   maximum length: 125
+SNMP Access Host: "10.250.0.82"
+# SNMP Access Type
+#   Select the SNMPv1/v2c access type: ReadOnly or ReadWrite
+#   1: Read Only
+#   2: Read/Write
+SNMP Access Type: 1
+# SNMP Access Community String
+#   Password string used by the access host to authenticate read and write operations. Printable characters are allowed with the exception of <, >, comma, semicolon, and space. Note: Maximum length is 32 characters. The initial setting for the first access ent
+#   maximum length: 32
+# ** Protected value not displayed.  Uncomment following line to import new value:
+# SNMP Access Community String: "********"
+
+[SNMPv1/v2c Access.2]
+SNMP Access Host: ""
+SNMP Access Type: 1
+SNMP Access Community String: ""
+
+[SNMPv1/v2c Access.3]
+SNMP Access Host: ""
+SNMP Access Type: 1
+SNMP Access Community String: ""
+
+[SNMPv1/v2c Access.4]
+SNMP Access Host: ""
+SNMP Access Type: 1
+SNMP Access Community String: ""
+
+[SNMPv1/v2c Access.5]
+SNMP Access Host: ""
+SNMP Access Type: 1
+SNMP Access Community String: ""
+
+[SNMPv1/v2c Access.6]
+SNMP Access Host: ""
+SNMP Access Type: 1
+SNMP Access Community String: ""
+
+[SNMPv1/v2c Access.7]
+SNMP Access Host: ""
+SNMP Access Type: 1
+SNMP Access Community String: ""
+
+[SNMPv1/v2c Access.8]
+SNMP Access Host: ""
+SNMP Access Type: 1
+SNMP Access Community String: ""
+
+[SNMPv1/v2c Access.9]
+SNMP Access Host: ""
+SNMP Access Type: 1
+SNMP Access Community String: ""
+
+[SNMPv1/v2c Access.10]
+SNMP Access Host: ""
+SNMP Access Type: 1
+SNMP Access Community String: ""
+
+[SNMPv1/v2c Access.11]
+SNMP Access Host: ""
+SNMP Access Type: 1
+SNMP Access Community String: ""
+
+[SNMPv1/v2c Access.12]
+SNMP Access Host: ""
+SNMP Access Type: 1
+SNMP Access Community String: ""
+
+[SNMPv1/v2c Access.13]
+SNMP Access Host: ""
+SNMP Access Type: 1
+SNMP Access Community String: ""
+
+[SNMPv1/v2c Access.14]
+SNMP Access Host: ""
+SNMP Access Type: 1
+SNMP Access Community String: ""
+
+[SNMPv1/v2c Access.15]
+SNMP Access Host: ""
+SNMP Access Type: 1
+SNMP Access Community String: ""
+
+[SNMPv1/v2c Access.16]
+SNMP Access Host: ""
+SNMP Access Type: 1
+SNMP Access Community String: ""
+
+[SNMPv1/v2c Access.17]
+SNMP Access Host: ""
+SNMP Access Type: 1
+SNMP Access Community String: ""
+
+[SNMPv1/v2c Access.18]
+SNMP Access Host: ""
+SNMP Access Type: 1
+SNMP Access Community String: ""
+
+[SNMPv1/v2c Access.19]
+SNMP Access Host: ""
+SNMP Access Type: 1
+SNMP Access Community String: ""
+
+[SNMPv1/v2c Access.20]
+SNMP Access Host: ""
+SNMP Access Type: 1
+SNMP Access Community String: ""
+
+[YDN23]
+# YDN23 Protocol
+#   Enable or disable the YD/T 1363 (YDN23) Server.
+#   0: Disabled
+#   1: Enabled
+YDN23 Protocol: 0

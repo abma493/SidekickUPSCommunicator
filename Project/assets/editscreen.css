@@ -75,9 +75,17 @@ Button {
     color: white;
 }
 
-Button:focus {
-    background: blue;
-    border: heavy white;
+ToggleButton {
+    background: darkblue;   
+
+    & > .toggle--button {
+        color: white;
+        background: darkblue;
+    }
+    &.-on > .toggle--button {
+        color: gray;
+        background: blue;
+    }
 }
 
 /* Making the select component match the Vertiv blue style */

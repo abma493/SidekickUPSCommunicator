@@ -4,6 +4,7 @@ from .QuitScreen import QuitScreen
 from .ModNetworkScreen import ModNetworkScreen
 from .EditScreen import EditScreen
 from logger import Logger
+from .BatchScreen import BatchScreen
 import asyncio
 import os
 from syncprims import send_request
@@ -17,7 +18,8 @@ class OptionsScreen(Screen):
         ("q", "quit_app"),
         ("e", "edit_settings"),
         ("1", "mod_network_settings"),
-        ("6", "restart_card")
+        ("6", "restart_card"),
+        ("7", "batch_operations")
     ]
 
     def on_mount(self):
@@ -49,6 +51,7 @@ class OptionsScreen(Screen):
                 yield Button("Q - Quit", id="quit-button")
                 yield Button("E - Edit", id="edit-button")
                 yield Label(f"Mode: Single (Default)", id="status-label")
+                yield Label(f"", id="info-label")
     
     # Quitting the app will ask for confirmation
     def action_quit_app(self) -> None:
@@ -65,24 +68,20 @@ class OptionsScreen(Screen):
     # handle editing settings
     def action_edit_settings(self) -> None:
 
-        def check_edit(result: tuple) -> None:
-            
+        #callback function for EditScreen dismissal to reap values
+        def check_edit(result: tuple) -> None:    
             mode = result[0]
             path_batch = result[1]
             path_config = result[2]
             
-            # set the current mode
-            global current_mode, path_to_config, path_to_batch # this may be WRONG!
             current_mode = mode
 
-            # validate with the OS that these file paths are correct
+            # validate with the OS that there is a batch file
             if path_batch is not None and not os.path.exists(path_batch):
                 Logger.log(f"Path to batch file does not exist: {path_batch}")
                 current_mode = "Single"
                 
-            if path_config is not None and not os.path.exists(path_config):
-                Logger.log(f"Path to batch file does not exist: {path_batch}")
-                current_mode = "Single"
+            # there doesn't have to be a config file, but this disables import mode on BatchScreen
             
             status_label: Label = self.query_one("#status-label")
             status_label.update(f"Mode: {current_mode}")
@@ -91,9 +90,19 @@ class OptionsScreen(Screen):
             path_to_batch = path_batch
 
         self.app.push_screen(EditScreen(), check_edit)
-            
-
-
+    
+    # handle the batch operations
+    async def action_batch_operations(self) -> None:
+        test = "Batch" in current_mode
+        Logger.log(f"-> {test} / {current_mode}")
+        if "Batch" in current_mode:
+            try:
+                creds: tuple = await send_request("REQ_CREDS")
+            except Exception as e:
+                Logger.log(f"Driver communication error: {e}")
+            self.app.push_screen(BatchScreen(path_to_batch, path_to_config, creds))
+        else:
+            Logger.log("No batch file loaded onto program.")
 
 
 # For explicitly requesting to restart ONE device's webcard
