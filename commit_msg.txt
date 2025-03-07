@@ -1,15 +1,20 @@
 Major changes:
     
-    > Option 1 can now push changes and restart card to apply them (DHCP mod has not been tested though)
-        > back button and selecting option 1 again will reload current data
-    > EditScreen exists now to modify app mode (Single or Batch)
-        > A batch file and config file is now stored in-memory 
+    > BatchOptScreen (Opt 6)
+        - is now UI responsive during job task execution
+        - can now select between Import and Export
+        - can now abort all jobs
+        - can Import files and await the "reboot" message on DOM (still needs to wait for appropriate reboot confirmation)
+        - inchoate import error handling by asking users to check import log on webUI (need to make this better!)
     
 Improvements
     > RestartScreenPrompt needs Label updates for notifying user that webcard is restarting 
-    > Selecting batch mode MUST require both files to be supplied and checked before continuing
+    > Selecting batch mode MUST require batch file; if config file not supplied, Import option disabled on Opt 6
     > If in batch mode, pressing E should populate the file path fields with the existing file paths
+    > Handle logout due to inactivty (if user stalls on Communicator app)
 
 
 Next steps
-    > Create a class to handle batch operation of applying a configuration file to its webcard
+    > Incorporate BatchOpsScreen with the rest of the program
+    > Push firmware update (Opt 5)
+    > Implement the rest of the options (should be the easier ones, for last!)

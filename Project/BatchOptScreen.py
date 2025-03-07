@@ -5,9 +5,8 @@ from textual.widgets import Select
 from logger import Logger
 from login import login
 import asyncio
+from asyncio import Task
 from datetime import datetime
-import os
-import re
 from logger import Logger
 
 class BatchOptScreen(App):
@@ -18,7 +17,7 @@ class BatchOptScreen(App):
 
     def __init__(self, jobs: list, credentials):
         self.jobs = jobs
-        self.job_task = {}
+        self.job_tasks: Task = []
         self.credentials = credentials
         self.running = False
         self.mode_export = True
@@ -62,7 +61,22 @@ class BatchOptScreen(App):
 
     @on(Button.Pressed, "#abort-all")
     async def on_abort_pressed(self) -> None:
-        pass # TODO work on this LATER
+
+        if self.running:
+            current = asyncio.current_task()
+            for i, task in enumerate(self.job_tasks):
+
+                if task != current:
+                    job_id = self.jobs[i]["id"]
+                    self.mark_job_aborted(job_id)
+                    task.cancel()
+            self.running = False
+
+    def mark_job_aborted(self, job_id: str) -> None:
+        stat_label = self.query_one(f"#stat-job{job_id}", Static)
+        progress_bar: ProgressBar = self.query_one(f"#{job_id}", ProgressBar)
+        stat_label.update("ABORTED")
+        progress_bar.update(total=100, progress=0)
 
     @on(Button.Pressed, "#run-button")
     async def on_run_pressed(self) -> None:
@@ -76,24 +90,29 @@ class BatchOptScreen(App):
     # amalgamates all the tasks to run
     async def run_batch_ops(self):
 
-        tasks = [self.run_job(job["ip"], job["id"], self.credentials) for job in self.jobs]
+        tasks = [asyncio.create_task(self.run_job(job["ip"], job["id"], self.credentials)) for job in self.jobs]
+        self.job_tasks = tasks
         await asyncio.gather(*tasks)
+        
+        # jobs are done processing
+        self.running = False
 
+        # Pop the buttons off the stack to leave only the return button when all is done
         buttons_container = self.query_one(".buttons-container")
         buttons_container.remove_children()
-        OK_button = Button("RETURN", id="return-button", variant="primary")
-        buttons_container.mount(OK_button)
+        return_button = Button("RETURN", id="return-button", variant="primary")
+        buttons_container.mount(return_button)
 
 
     # runs an individual job
     async def run_job(self, ip: str, id: str,  credentials: tuple, max_retries: int = 3):
-        
+        stat_label = self.query_one(f"#stat-job{id}", Static)
         retry = 0
         self.running = True 
 
         while retry < max_retries:
             try:
-                self.query_one(f"#stat-job{id}", Static).update("Connecting...")
+                stat_label.update("Connecting...")
                 playwright = await async_playwright().start()
                 browser = await playwright.firefox.launch(headless=False)
                 context = await browser.new_context() 
@@ -105,7 +124,7 @@ class BatchOptScreen(App):
                 if login_success:
                     # Navigate to the communications tab
                     self.query_one(f"#{id}", ProgressBar).advance(30)
-                    self.query_one(f"#stat-job{id}", Static).update("Accessing config folder...")
+                    stat_label.update("Accessing config folder...")
         
                         
                     # Find and switch to the tabArea frame
@@ -134,7 +153,7 @@ class BatchOptScreen(App):
 
                     if self.mode_export:
                         self.query_one(f"#{id}", ProgressBar).advance(20)
-                        self.query_one(f"#stat-job{id}", Static).update("Retrieving file...")   
+                        stat_label.update("Retrieving file...")   
 
                         # download the file by clicking the "Export" button
                         async with page.expect_download() as download:
@@ -142,49 +161,22 @@ class BatchOptScreen(App):
                             await export_button.click() 
                         
                         download_val = await download.value
-                        self.query_one(f"#stat-job{id}", Static).update(f"Saving to {download_val.suggested_filename}")
+                        stat_label.update(f"Saving to {download_val.suggested_filename}")
                         # save the file (by default it downloads on the current working folder)
                         await download_val.save_as(download_val.suggested_filename)
                     else: 
                         self.query_one(f"#{id}", ProgressBar).advance(20)
-                        self.query_one(f"#stat-job{id}", Static).update("Setting up...")
+                        stat_label.update("Setting up...")
                         
+                        # Select the import button
                         import_button = await detail_frame.wait_for_selector("#commBtn272")
                         await import_button.click()
                         
                         try:
-                            detail_frame.locator('div[id="modal-dialog-cfgImport"][class*="active"]').wait_for(state="visible")
-   
-                            # await detail_frame.evaluate('document.getElementById("CancelImportCfg").click()')
-                            detail_frame.locator('form[name="ImportConfiguration"]').wait_for(state="visible")
-                            
-                            async with page.expect_file_chooser() as fc_info:
-                                # Click the Browse button
-                                await detail_frame.locator('form[name="ImportConfiguration"] input[value="Browse..."]').click()
-                            
-                            self.query_one(f"#stat-job{id}", Static).update("Uploading file...")
-                            # Upload the file
-                            file_chooser = await fc_info.value
-                            await file_chooser.set_files('config_00-09-f5-31-6a-f4_2025-03-06_21-42-07.txt')
-                            
-                            await detail_frame.evaluate('document.getElementById("ImportCfg").click()')
-
-                            # wait for the import status element to be visible
-                            status_element = detail_frame.locator('form[id="ImportCfgStatus"]')
-
-                            # First wait for element to be visible
-                            await status_element.wait_for(state="visible", timeout=10000)
-
-                            # Wait for importing text (optional if you know it's already there)
-                            await expect(status_element).to_have_text(re.compile("Importing configuration settings"))
-                            self.query_one(f"#stat-job{id}", Static).update("Importing configuration changes...")
-
-                            # Wait for text to change to success message with longer timeout
-                            await expect(status_element).to_have_text(re.compile("succeed|complete|reboot"), timeout=300000)
-                            self.query_one(f"#stat-job{id}", Static).update("Rebooting...")
-                        except Exception as e:
-                            Logger.log(f"Error occurred: {e}")
-                        
+                            await self.perform_import(detail_frame, page, stat_label)
+                        except Exception:
+                            raise # For now, raise ANY fail with job for a retry in outer except block (TODO: Handle fail_by_import separately, like maybe no retry?)
+                    
                     self.query_one(f"#{id}", ProgressBar).advance(50) 
                     self.query_one(f"#stat-job{id}", Static).update("DONE") 
                     break # break off because if we get here, this job is complete!
@@ -192,9 +184,9 @@ class BatchOptScreen(App):
             except Exception as e:
                 retry += 1
                 Logger.log(f"An error occured with job {id} [{ip}] : {e}")
-                self.query_one(f"#{id}", ProgressBar).update(total=100)
+                self.query_one(f"#{id}", ProgressBar).update(total=100, progress=0)
                 self.query_one(f"#stat-job{id}", Static).update(f"Job failed. Retry: {retry}/{max_retries}")  
-                asyncio.sleep(2) # let the message show          
+                await asyncio.sleep(3) # let the message show          
             finally: # close the playwright elements before exiting the job
                 if context:
                     await context.close()
@@ -204,15 +196,54 @@ class BatchOptScreen(App):
                     await playwright.stop()
         
 
+    # When user selects Import, then upload the import file and wait for reboot and completion
+    async def perform_import(self, detail_frame, page, stat_label, status_element=None):
+        
+        try:
+            detail_frame.locator('div[id="modal-dialog-cfgImport"][class*="active"]').wait_for(state="visible")
+            detail_frame.locator('form[name="ImportConfiguration"]').wait_for(state="visible")
+            
+            #  Click the Browse button and upload the file
+            async with page.expect_file_chooser() as fc_info:
+                await detail_frame.locator('form[name="ImportConfiguration"] input[value="Browse..."]').click()
+            
+            # Upload the file
+            stat_label.update("Uploading file...")
+            file_chooser = await fc_info.value
+            await file_chooser.set_files('config_00-09-f5-31-6a-f4_2025-03-07_05-42-24.txt') # TODO Hard-coded!     
+            await detail_frame.evaluate('document.getElementById("ImportCfg").click()')
+
+            # wait for the import status element to be visible
+            status_element = detail_frame.locator('div#importCfgStatus')
+            await status_element.wait_for(state="visible", timeout=10000)
+
+            # Await a log message
+            stat_label.update("Importing configuration changes...")
+            await expect(status_element).to_contain_text("Importing configuration settings", timeout=10000, ignore_case=True)
+
+            # Wait for text to indicate a REBOOT
+            await expect(status_element).to_contain_text("reboot", timeout=120000, ignore_case=True)
+            stat_label.update("Rebooting...")
+            #TODO Assuming that like any reboot, it takes you back to http://{ip}/web/initialize.htm?mode=reboot
+
+        except Exception as e:
+            
+            content = await status_element.text_content()
+            if "failed" in content.lower():
+                stat_label.update("Import failed. CHK SITE IMPORT LOG.")
+                await asyncio.sleep(5)
+            Logger.log(f"An error has occured during import operation: {e}")
+            raise
+
 
 
 if __name__ == "__main__":
     
     jobs = [
-        {"ip": "10.9.14.161", "id": "uno", "status": "LOADING"},
-        # {"ip": "10.5.5.200", "id": "dos", "status": "LOADING"}, 
-        #{"ip": "10.4.3.200", "id": "tres", "status": "LOADING"}, # flawed
-        #{"ip": "10.5.21.200", "id": "cuatro", "status": "LOADING"}
+        {"ip": "10.9.14.161", "id": "uno", "status": "READY"},
+        # {"ip": "10.5.5.200", "id": "dos", "status": "READY"}, 
+        #{"ip": "10.4.3.200", "id": "tres", "status": "READY"}, # flawed
+        # {"ip": "10.5.21.200", "id": "cuatro", "status": "READY"}
     ]
     credentials: tuple = ("admin", "UT$Opu$1812")
 
