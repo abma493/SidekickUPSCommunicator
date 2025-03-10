@@ -1,5 +1,5 @@
 from common.common_term import *
-from common.common_imports import current_mode, path_to_batch, path_to_config, os
+from common.common_imports import os
 from .QuitScreen import QuitScreen
 from .ModNetworkScreen import ModNetworkScreen
 from .EditScreen import EditScreen
@@ -20,6 +20,12 @@ class OptionsScreen(Screen):
         ("6", "restart_card"),
         ("7", "batch_operations")
     ]
+
+    def __init__(self):
+        super().__init__()
+        self.path_to_batch: str = ""
+        self.path_to_config: str = ""
+        self.current_mode: str = "Single (Default)"
 
     def on_mount(self):
         self.screen.styles.background = "darkblue"
@@ -72,7 +78,6 @@ class OptionsScreen(Screen):
             mode: str = result[0]
             path_batch: str = result[1]
             path_config: str = result[2]
-            Logger.log("In edit callback")
             # validate with the OS that there is a batch file
             test_batch_path = "\\".join([str(os.path.dirname(os.path.abspath(path_batch))), path_batch])
             if path_batch is None or not os.path.exists(test_batch_path):
@@ -87,26 +92,26 @@ class OptionsScreen(Screen):
                 path_config = None # sets to none to indicate the BatchScreen to disable import mode
 
             # set the global vars
-            current_mode = mode
-            path_to_config = path_config
-            path_to_batch = path_batch
+            self.current_mode = mode
+            self.path_to_config = path_config
+            self.path_to_batch = path_batch
 
             status_label: Label = self.query_one("#status-label")
-            status_label.update(f"Mode: {current_mode}")
+            status_label.update(f"Mode: {self.current_mode}")
 
         self.app.push_screen(EditScreen(), check_edit)
     
     # handle the batch operations
     async def action_batch_operations(self) -> None:
-        test = "Batch" in current_mode
-        Logger.log(f"-> {test} / {current_mode} / {path_to_batch}")
-        Logger.log(f"path to config file: {path_to_config}")
-        if "Batch" in current_mode:
+        test = "Batch" in self.current_mode
+        Logger.log(f"-> {test} / {self.current_mode} / {self.path_to_batch}")
+        Logger.log(f"path to config file: {self.path_to_config}")
+        if "Batch" in self.current_mode:
             try:
                 creds: tuple = await send_request("REQ_CREDS")
             except Exception as e:
                 Logger.log(f"Driver communication error: {e}")
-            self.app.push_screen(BatchScreen(path_to_batch, path_to_config, creds))
+            self.app.push_screen(BatchScreen(self.path_to_batch, self.path_to_config, creds))
         else:
             Logger.log("No batch file loaded onto program.")
 

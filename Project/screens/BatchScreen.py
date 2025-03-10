@@ -8,21 +8,18 @@ import asyncio
 from asyncio import Task
 from logger import Logger
 
-class BatchScreen(App):
+class BatchScreen(Screen):
     
-    CSS_PATH = "./assets/batchops.css"
-
-    BINDINGS = [('q', 'quit_app')] #TODO should be deleted when all testing done!
+    CSS_PATH = "../assets/batchops.css"
 
     def __init__(self, path_to_batch: str, path_to_config: str, credentials):
         self.jobs = self.parse_to_list(path_to_batch)
-        self.path_to_config = path_to_config
-        Logger.log(f'config_file path: {path_to_config}')
+        self.path_to_config = path_to_config 
         self.job_tasks: Task = []
-        self.credentials = credentials
-        self.running = False
-        self.mode_export = True
-        self.success_count = 0
+        self.credentials = credentials 
+        self.running = False   
+        self.mode_export = True #TODO needs to change as FIRMWARE options needs to exist!
+        self.success_count = 0 # num of jobs completed successfully
         super().__init__()
 
     def parse_to_list(self, path_to_batch: str) -> list:
@@ -50,13 +47,13 @@ class BatchScreen(App):
             yield ListView(
                 *[ListItem(
                     Container(
-                        Static(f"Job {i+1}"),
+                        Static(f"Job {i}"),
                         Static(f"IP: {job['ip']}"),  
                         ProgressBar(id=job['id'], total=100, show_eta=False),
                         Static(f"Status: READY", id=f"{job['id']}-stat"),
                     classes="job-container"
                     )
-                ) for i, job in enumerate(self.jobs)],
+                ) for i, job in enumerate(self.jobs, 1)],
             id="list-of-jobs")
             
             with Horizontal(classes="buttons-container"):
@@ -69,14 +66,10 @@ class BatchScreen(App):
                     prompt="",
                     id="mode-select"                    
                 )
-            
-    # DELETE WHEN DEBUG DONE
-    def action_quit_app(self) -> None:  
-        self.app.exit()
 
     @on(Button.Pressed, "#return-button")
     def on_return_pressed(self) -> None:
-        self.app.exit()
+        self.app.pop_screen()
 
     @on(Button.Pressed, "#abort-all")
     async def on_abort_pressed(self) -> None:
@@ -91,23 +84,23 @@ class BatchScreen(App):
                     task.cancel()
             self.running = False
 
+
+    @on(Button.Pressed, "#run-button")
+    async def on_run_pressed(self) -> None:
+        self.run_worker(self.run_batch_ops(), exclusive=True)
+
+    @on(Select.Changed, "#mode-select")
+    def on_mode_changed(self, event: Select.Changed) -> None:
+        self.mode_export = event.value == "Export"
+
     # ancillary function to handle job labels and progress bar
     def mark_job_aborted(self, job_id: str) -> None:
         stat_label = self.query_one(f"#{job_id}-stat", Static)
         progress_bar: ProgressBar = self.query_one(f"#{job_id}", ProgressBar)
         stat_label.update("ABORTED")
         progress_bar.update(total=100, progress=0)
-
-    @on(Button.Pressed, "#run-button")
-    async def on_run_pressed(self) -> None:
-        self.run_worker(self.run_batch_ops(), exclusive=True)
-
-
-    @on(Select.Changed, "#mode-select")
-    def on_mode_changed(self, event: Select.Changed) -> None:
-        self.mode_export = event.value == "Export"
     
-    # amalgamates all the tasks to run
+    # amalgamates all the tasks to run concurrently
     async def run_batch_ops(self):
 
         tasks = [asyncio.create_task(self.run_job(job["ip"], job["id"], self.credentials)) for job in self.jobs]
@@ -125,10 +118,10 @@ class BatchScreen(App):
         buttons_container.mount(return_button)
         buttons_container.mount(final_stat)
 
-
     # runs an individual job
     async def run_job(self, ip: str, id: str,  credentials: tuple, max_retries: int = 3):
-        stat_label = self.query_one(f"#stat-job{id}", Static)
+        stat_label = self.query_one(f"#{id}-stat", Static)
+        prog_bar = self.query_one(f"#{id}", ProgressBar)
         retry = 0
         self.running = True 
 
@@ -145,7 +138,7 @@ class BatchScreen(App):
                 login_success = await login(page, credentials[0], credentials[1])
                 if login_success:
                     # Navigate to the communications tab
-                    self.query_one(f"#{id}", ProgressBar).advance(30)
+                    prog_bar.advance(30)
                     stat_label.update("Accessing config folder...")
         
                         
@@ -174,7 +167,7 @@ class BatchScreen(App):
                     await enable_button.click() 
 
                     if self.mode_export:
-                        self.query_one(f"#{id}", ProgressBar).advance(50)
+                        prog_bar.advance(50)
                         stat_label.update("Retrieving file...")   
 
                         # download the file by clicking the "Export" button
@@ -187,7 +180,7 @@ class BatchScreen(App):
                         # save the file (by default it downloads on the current working folder)
                         await download_val.save_as(download_val.suggested_filename)
                     else: 
-                        self.query_one(f"#{id}", ProgressBar).advance(20)
+                        prog_bar.advance(20)
                         stat_label.update("Setting up...")
                         
                         # Select the import button
@@ -199,16 +192,16 @@ class BatchScreen(App):
                         except Exception:
                             raise # For now, raise ANY fail with job for a retry in outer except block (TODO: Handle fail_by_import separately, like maybe no retry?)
                     
-                    self.query_one(f"#{id}", ProgressBar).advance(30) 
-                    self.query_one(f"#stat-job{id}", Static).update("DONE") 
+                    prog_bar.advance(30) 
+                    stat_label.update("DONE") 
                     self.success_count += 1
                     break # break off because if we get here, this job is complete!
 
             except Exception as e:
                 retry += 1
                 Logger.log(f"An error occured with job {id} [{ip}] : {e}")
-                self.query_one(f"#{id}", ProgressBar).update(total=100, progress=0)
-                self.query_one(f"#stat-job{id}", Static).update(f"Job failed. Retry: {retry}/{max_retries}")  
+                prog_bar.update(total=100, progress=0)
+                stat_label.update(f"Job failed. Retry: {retry}/{max_retries}")  
                 await asyncio.sleep(5) # let the message show          
             finally: # close the playwright elements before exiting the job
                 if context:
@@ -261,17 +254,3 @@ class BatchScreen(App):
             Logger.log(f"An error has occured during import operation: {e}")
             raise
 
-
-
-# if __name__ == "__main__":
-    
-#     jobs = [
-#         {"ip": "10.9.14.161", "id": "uno", "status": "READY"},
-#         # {"ip": "10.5.5.200", "id": "dos", "status": "READY"}, 
-#         #{"ip": "10.4.3.200", "id": "tres", "status": "READY"}, # flawed
-#         # {"ip": "10.5.21.200", "id": "cuatro", "status": "READY"}
-#     ]
-#     credentials: tuple = ("admin", "UT$Opu$1812")
-
-#     app = BatchOptScreen(jobs, credentials)
-#     app.run()
