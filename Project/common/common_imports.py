@@ -1,5 +1,5 @@
 from time import sleep
-from os import system
+import os
 from threading import Thread, Lock, Condition
 from queue import Queue, Empty
 import multiprocessing as mp
