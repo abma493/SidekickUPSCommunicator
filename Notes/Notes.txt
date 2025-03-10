@@ -1,0 +1,21 @@
+Handling batch processing
+
+In edit mode, select "Batch Mode"
+Append a file of IPs to process
+Append a mass config file
+Display a message that both the batch file and mass config file are found
+Exit the edit mode
+The option for Batch Process Run should appear, or be enabled on the OptionsScreen
+Hit the Batch Process Run
+Open the Batch Process Run Screen 
+    > Shows a list of up to 5 concurrent webcard logins
+    > each will show a progress bar or message
+        > JOB 1: IP: 10.9.14.66 <RUNNING/PUSHING CHANGES/RESTARTING CARD/SUCCESS/FAIL: RETRY 1/3/FATAL ERROR: SEE LOG>
+
+Other options available for batch processing:
+    > Get diagnostics file(s)
+    > Restart webcard
+
+
+Other suggestions for program:
+    > Silence alarm

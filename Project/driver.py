@@ -18,6 +18,7 @@ class Request(Enum):
     SET_SUBNET = auto()
     SET_DHCP = auto()
     SET_STATIC = auto()
+    REQ_CREDS = auto()
     
 
 # The Driver class serves as the liason between Textual's UI implementations
@@ -170,6 +171,8 @@ class Driver():
                 return await self.networkops.enable_dhcp()
             case Request.SET_STATIC:
                 return await self.networkops.enable_static()
+            case Request.REQ_CREDS:
+                return self.send_creds()
             case _:
                 Logger.log("NO request parsed")
                 pass
@@ -235,8 +238,8 @@ class Driver():
         except Exception as e:
             Logger.log(f"Error navigating to communications tab: {e}")
 
-    # run batch operations
-    async def run_batch():
-        pass
+    
+    def send_creds(self):
+        return (self.username, self.password)
 
 
