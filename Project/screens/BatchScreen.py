@@ -22,6 +22,10 @@ class BatchScreen(Screen):
         self.success_count = 0 # num of jobs completed successfully
         super().__init__()
 
+    # parse the IPs in the batch file to a list of jobs 
+    # A job entry in the list is comprised of an IP and an ID
+    # IP is used to navigate to webcard website
+    # ID is used to provide a selector identifier to the widgets on screen
     def parse_to_list(self, path_to_batch: str) -> list:
         jobs = []
 
