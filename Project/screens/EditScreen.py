@@ -27,6 +27,8 @@ class EditScreen(ModalScreen):
             
             yield Input(id="path-batch", placeholder="Path to batch file", disabled=True)
             yield Input(id="path-config", placeholder="Path to config file", disabled=True)
+            # Should be available on both modes, optional unless on batch mode and attempting to push firmware
+            yield Input(id="path-firmware", placeholder="Path to firmware file", disabled=False)
             
             yield Button("OK", variant="primary", id="ok-button")
         
@@ -60,9 +62,10 @@ class EditScreen(ModalScreen):
         mode = self.query_one("#mode-select").value
         path_batch = self.query_one("#path-batch").value
         path_config = self.query_one("#path-config").value
+        path_firmware = self.query_one("#path-firmware").value
         
         # Here you would handle the collected values
         # For example, pass them back to the calling screen or app
         
         # Dismiss the modal
-        self.dismiss((mode, path_batch, path_config))
+        self.dismiss((mode, path_batch, path_config, path_firmware))

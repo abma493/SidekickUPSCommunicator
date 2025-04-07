@@ -6,8 +6,15 @@ from logger import Logger
 from login import login
 import asyncio
 from asyncio import Task
-from datetime import datetime
 from logger import Logger
+from enum import Enum, auto
+
+class Mode(Enum):
+    EXPORT = auto()
+    IMPORT = auto()
+    FIRMWARE = auto()
+
+DEFAULT_IMAGE = "rdu101-image-1.9.1.2_00001.fl"
 
 class BatchOptScreen(App):
     
@@ -20,7 +27,8 @@ class BatchOptScreen(App):
         self.job_tasks: Task = []
         self.credentials = credentials
         self.running = False
-        self.mode_export = True
+        self.mode_export = Mode.EXPORT
+        self.success_count = 0
         super().__init__()
 
     def compose(self) -> ComposeResult:
@@ -45,7 +53,7 @@ class BatchOptScreen(App):
                 yield Button("<Kill Job>", id="kill-button")  
                 yield Button("<Run>", id="run-button")
                 yield Select(
-                    ((option, option) for option in ["Export", "Import"]),
+                    ((option, option) for option in ["Export", "Import", "Firmware Update"]),
                     value="Export",
                     prompt="",
                     id="mode-select"                    
@@ -85,7 +93,10 @@ class BatchOptScreen(App):
 
     @on(Select.Changed, "#mode-select")
     def on_mode_changed(self, event: Select.Changed) -> None:
-        self.mode_export = event.value == "Export"
+        mode: Mode = Mode.EXPORT if event.value == "Export" else Mode.IMPORT
+        mode = Mode.FIRMWARE if event.value == "Firmware Update" else mode
+
+        self.mode = mode
     
     # amalgamates all the tasks to run
     async def run_batch_ops(self):
@@ -101,7 +112,9 @@ class BatchOptScreen(App):
         buttons_container = self.query_one(".buttons-container")
         buttons_container.remove_children()
         return_button = Button("RETURN", id="return-button", variant="primary")
+        final_stat = Static(f"jobs succeeded: ({self.success_count}/{len(self.jobs)})", id="final-stat")
         buttons_container.mount(return_button)
+        buttons_container.mount(final_stat)
 
 
     # runs an individual job
@@ -142,43 +155,106 @@ class BatchOptScreen(App):
                     support_folder = await navigation_frame.wait_for_selector("#report164190", timeout=10000)
                     await support_folder.click()
 
-                    # access the Configuration Export/Import
-                    config_folder = await navigation_frame.wait_for_selector("#report164400", timeout=10000)
-                    await config_folder.click()
+                    if self.mode != Mode.FIRMWARE:
 
-                    # Click the enable button 
-                    detail_frame = page.frame("detailArea")
-                    enable_button = await detail_frame.wait_for_selector("#enableComms")
-                    await enable_button.click() 
+                        # access the Configuration Export/Import
+                        config_folder = await navigation_frame.wait_for_selector("#report164400", timeout=10000)
+                        await config_folder.click()
 
-                    if self.mode_export:
-                        self.query_one(f"#{id}", ProgressBar).advance(20)
-                        stat_label.update("Retrieving file...")   
+                        # Click the enable button 
+                        detail_frame = page.frame("detailArea")
+                        enable_button = await detail_frame.wait_for_selector("#enableComms")
+                        await enable_button.click() 
 
-                        # download the file by clicking the "Export" button
-                        async with page.expect_download() as download:
-                            export_button = await detail_frame.wait_for_selector("#commBtn244")
-                            await export_button.click() 
-                        
-                        download_val = await download.value
-                        stat_label.update(f"Saving to {download_val.suggested_filename}")
-                        # save the file (by default it downloads on the current working folder)
-                        await download_val.save_as(download_val.suggested_filename)
-                    else: 
-                        self.query_one(f"#{id}", ProgressBar).advance(20)
-                        stat_label.update("Setting up...")
-                        
-                        # Select the import button
-                        import_button = await detail_frame.wait_for_selector("#commBtn272")
-                        await import_button.click()
-                        
+                        if self.mode == Mode.EXPORT:
+                            self.query_one(f"#{id}", ProgressBar).advance(20)
+                            stat_label.update("Retrieving file...")   
+
+                            # download the file by clicking the "Export" button
+                            async with page.expect_download() as download:
+                                export_button = await detail_frame.wait_for_selector("#commBtn244")
+                                await export_button.click() 
+                            
+                            download_val = await download.value
+                            stat_label.update(f"Saving to {download_val.suggested_filename}")
+                            
+                            # save the file (by default it downloads on the current working folder)
+                            await download_val.save_as(download_val.suggested_filename)
+                        else: 
+                            self.query_one(f"#{id}", ProgressBar).advance(20)
+                            stat_label.update("Setting up import...")
+                            
+                            # Select the import button
+                            import_button = await detail_frame.wait_for_selector("#commBtn272")
+                            await import_button.click()
+                            
+                            try:
+                                await self.perform_import(detail_frame, page, stat_label, ip, id)
+                            except Exception:
+                                raise # For now, raise ANY fail with job for a retry in outer except block (TODO: Handle fail_by_import separately, like maybe no retry?)
+                    else:
                         try:
-                            await self.perform_import(detail_frame, page, stat_label)
-                        except Exception:
-                            raise # For now, raise ANY fail with job for a retry in outer except block (TODO: Handle fail_by_import separately, like maybe no retry?)
-                    
+
+                            # Select the firmware update folder                       
+                            firmware_folder = await navigation_frame.wait_for_selector("#report164380", timeout=10000)
+                            await firmware_folder.click()
+                            
+                            # Click the enable button 
+                            detail_frame = page.frame("detailArea")
+                            enable_button = await detail_frame.wait_for_selector("#enableComms")
+                            await enable_button.click() 
+
+                            # Select the web option for firmware update
+                            web_button = await detail_frame.wait_for_selector("#webFwUpdateBtn")
+                            await web_button.click()
+
+                            # wait for the web url to show
+                            await page.wait_for_url(
+                                lambda url: url.startswith(f"http://{ip}/protected/firmware/httpFwUpdate.html"), timeout=30000
+                            )
+                            
+                            page.locator('div[id="DetailPanelAreaFwUpdate"][style*="visibility: visible"]').wait_for(state="visible")
+                            page.locator('form[name="firmwareHttpForm"]').wait_for(state="visible")
+
+                            #  Click the Browse button and upload the file
+                            async with page.expect_file_chooser() as fc_info:
+                                await page.locator('form[name="firmwareHttpForm"] input[id="Firmware File Upload"]').click()
+                            Logger.log("await the file_chooser.")
+                            
+                            # Upload the file
+                            stat_label.update("Uploading file...")
+                            self.query_one(f"#{id}", ProgressBar).advance(5) 
+                            
+                            file_chooser = await fc_info.value
+                            await file_chooser.set_files(DEFAULT_IMAGE) 
+
+                            # submit the firmware
+                            update_button = await page.wait_for_selector("#Submit")
+                            await update_button.click()
+
+                            # Check the stat element is available
+                            stat_element = page.locator("#updProgressString2")
+                            await stat_element.wait_for(state="visible", timeout=50000)
+                            
+                            # writing is ready
+                            await expect(stat_element).to_contain_text("Writing", timeout=600000, ignore_case=True)
+                            stat_label.update("Writing...")
+                            self.query_one(f"#{id}", ProgressBar).advance(5)
+                            
+                            # rebooting is set (card firmware successful)
+                            await expect(stat_element).to_contain_text("rebooting", timeout=600000, ignore_case=True)
+                            stat_label.update("Rebooting card...")
+                            self.query_one(f"#{id}", ProgressBar).advance(10)
+
+                            # click on the return button
+                            await page.locator("#GoHomeB").click(timeout=600000)
+
+                        except Exception as e:
+                            Logger.log(f"Error with firmware update: {e}")
+  
                     self.query_one(f"#{id}", ProgressBar).advance(50) 
                     self.query_one(f"#stat-job{id}", Static).update("DONE") 
+                    self.success_count += 1
                     break # break off because if we get here, this job is complete!
 
             except Exception as e:
@@ -197,7 +273,7 @@ class BatchOptScreen(App):
         
 
     # When user selects Import, then upload the import file and wait for reboot and completion
-    async def perform_import(self, detail_frame, page, stat_label, status_element=None):
+    async def perform_import(self, detail_frame, page, stat_label, ip, id, status_element=None):
         
         try:
             detail_frame.locator('div[id="modal-dialog-cfgImport"][class*="active"]').wait_for(state="visible")
@@ -224,7 +300,10 @@ class BatchOptScreen(App):
             # Wait for text to indicate a REBOOT
             await expect(status_element).to_contain_text("reboot", timeout=120000, ignore_case=True)
             stat_label.update("Rebooting...")
+            self.query_one(f"#{id}", ProgressBar).advance(20) 
+            
             #TODO Assuming that like any reboot, it takes you back to http://{ip}/web/initialize.htm?mode=reboot
+            await page.wait_for_url(f"http://{ip}/web/initialize.htm?mode=reboot", timeout=600000)
 
         except Exception as e:
             
@@ -232,7 +311,7 @@ class BatchOptScreen(App):
             if "failed" in content.lower():
                 stat_label.update("Import failed. CHK SITE IMPORT LOG.")
                 await asyncio.sleep(5)
-            Logger.log(f"An error has occured during import operation: {e}")
+            Logger.log(f"An error has occured during import operation: {e}\nContent Dump: {content}")
             raise
 
 
@@ -240,7 +319,7 @@ class BatchOptScreen(App):
 if __name__ == "__main__":
     
     jobs = [
-        {"ip": "10.9.14.161", "id": "uno", "status": "READY"},
+        {"ip": "10.5.3.20", "id": "uno", "status": "READY"},
         # {"ip": "10.5.5.200", "id": "dos", "status": "READY"}, 
         #{"ip": "10.4.3.200", "id": "tres", "status": "READY"}, # flawed
         # {"ip": "10.5.21.200", "id": "cuatro", "status": "READY"}

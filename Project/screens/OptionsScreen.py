@@ -1,5 +1,5 @@
 from common.common_term import *
-from common.common_imports import os
+from common.common_imports import os, Operation
 from .QuitScreen import QuitScreen
 from .ModNetworkScreen import ModNetworkScreen
 from .EditScreen import EditScreen
@@ -25,6 +25,7 @@ class OptionsScreen(Screen):
         super().__init__()
         self.path_to_batch: str = ""
         self.path_to_config: str = ""
+        self.path_to_firmware: str = ""
         self.current_mode: str = "Single (Default)"
 
     def on_mount(self):
@@ -72,29 +73,43 @@ class OptionsScreen(Screen):
     
     # handle editing settings
     def action_edit_settings(self) -> None:
-
+        
         #callback function for EditScreen dismissal to reap values
         def check_edit(result: tuple) -> None:    
             mode: str = result[0]
             path_batch: str = result[1]
             path_config: str = result[2]
-            # validate with the OS that there is a batch file
+            path_firmware: str = result[3]
+
+            # validate the batch file
             test_batch_path = "\\".join([str(os.path.dirname(os.path.abspath(path_batch))), path_batch])
             if path_batch is None or not os.path.exists(test_batch_path):
                 Logger.log(f"Path to batch file does not exist: {test_batch_path}")
-                return
+
+                # No batch file, revert back to Single Mode
+                if "Single" not in self.current_mode:
+                    self.current_mode = "Single"
+                    status_label: Label = self.query_one("#status-label")
+                    status_label.update(f"Mode: {self.current_mode}")                
+                return 
                 
-            # there doesn't have to be a config file. If its already none, then that's fine. (implicit disable)
+            # config file is optional. If None or incorrect, "Import" is disabled
             test_config_path = "\\".join([str(os.path.dirname(os.path.abspath(path_config))), path_config])
             if not os.path.exists(test_config_path):
-                # if config is supplied, but doesn't exist, then disable import mode explicitly.
                 Logger.log(f"Path to config file does not exist: {test_config_path}")
-                path_config = None # sets to none to indicate the BatchScreen to disable import mode
+                path_config = None # disable in case of bad path
+
+            # firmware file is optional. If None or incorrect, "Firmware update" is disabled on both Single/Batch
+            test_firmware_path = "\\".join([str(os.path.dirname(os.path.abspath(path_firmware))), path_firmware])
+            if not os.path.exists(test_firmware_path):
+                Logger.log(f"Path to config file does not exist: {test_firmware_path}")
+                path_config = None # disable in case of bad path
 
             # set the global vars
             self.current_mode = mode
             self.path_to_config = path_config
             self.path_to_batch = path_batch
+            self.path_to_firmware = path_firmware
 
             status_label: Label = self.query_one("#status-label")
             status_label.update(f"Mode: {self.current_mode}")
@@ -103,15 +118,14 @@ class OptionsScreen(Screen):
     
     # handle the batch operations
     async def action_batch_operations(self) -> None:
-        test = "Batch" in self.current_mode
-        Logger.log(f"-> {test} / {self.current_mode} / {self.path_to_batch}")
-        Logger.log(f"path to config file: {self.path_to_config}")
         if "Batch" in self.current_mode:
             try:
                 creds: tuple = await send_request("REQ_CREDS")
             except Exception as e:
                 Logger.log(f"Driver communication error: {e}")
-            self.app.push_screen(BatchScreen(self.path_to_batch, self.path_to_config, creds))
+            # Pass the validated paths to batch, config, firmware and creds. Bad paths or lack of paths result in 
+            # passing None, which BatchScreen handles to disable specific batch operations.
+            self.app.push_screen(BatchScreen(self.path_to_batch, self.path_to_config, self.path_to_firmware, creds))
         else:
             Logger.log("No batch file loaded onto program.")
 
@@ -143,6 +157,8 @@ class RestartScreen(ModalScreen):
             id="dialog",
         )
     
+    # When the task is reaped by the event loop, handle any abnormal errors
+    # TODO: Not robust, by cancel, do we mean the reboot REALLY didn't go through?
     def handle_task_result(self, task):
         # Check for exceptions
         if task.cancelled():

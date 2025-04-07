@@ -38,7 +38,7 @@
 }
 
 /* Style for the batch and config path inputs */
-#path-batch, #path-config {
+#path-batch, #path-config, #path-firmware {
     column-span: 2;
     background: darkblue;
     border: solid white;
