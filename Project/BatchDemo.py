@@ -8,6 +8,7 @@ import asyncio
 from asyncio import Task
 from logger import Logger
 from enum import Enum, auto
+from queue import Queue
 
 class Mode(Enum):
     EXPORT = auto()
@@ -23,12 +24,13 @@ class BatchOptScreen(App):
     BINDINGS = [('q', 'quit_app')]
 
     def __init__(self, jobs: list, credentials):
-        self.jobs = jobs
+        self.jobs: Queue = jobs
         self.job_tasks: Task = []
         self.credentials = credentials
         self.running = False
         self.mode_export = Mode.EXPORT
         self.success_count = 0
+        self.small_batch_lim = 5
         super().__init__()
 
     def compose(self) -> ComposeResult:
@@ -49,8 +51,7 @@ class BatchOptScreen(App):
             id="list-of-jobs")
             
             with Horizontal(classes="buttons-container"):
-                yield Button("<Abort All>", id="abort-all")
-                yield Button("<Kill Job>", id="kill-button")  
+                yield Button("<Abort All>", id="abort-all") 
                 yield Button("<Run>", id="run-button")
                 yield Select(
                     ((option, option) for option in ["Export", "Import", "Firmware Update"]),
@@ -58,6 +59,7 @@ class BatchOptScreen(App):
                     prompt="",
                     id="mode-select"                    
                 )
+                yield Static() #TODO
             
     # DELETE WHEN DEBUG DONE
     def action_quit_app(self) -> None:  
@@ -90,7 +92,6 @@ class BatchOptScreen(App):
     async def on_run_pressed(self) -> None:
         self.run_worker(self.run_batch_ops(), exclusive=True)
 
-
     @on(Select.Changed, "#mode-select")
     def on_mode_changed(self, event: Select.Changed) -> None:
         mode: Mode = Mode.EXPORT if event.value == "Export" else Mode.IMPORT
@@ -101,9 +102,14 @@ class BatchOptScreen(App):
     # amalgamates all the tasks to run
     async def run_batch_ops(self):
 
-        tasks = [asyncio.create_task(self.run_job(job["ip"], job["id"], self.credentials)) for job in self.jobs]
-        self.job_tasks = tasks
-        await asyncio.gather(*tasks)
+        # run the batch (queue) of jobs by (m) sub-batches of (n) jobs 
+        while not self.jobs.empty():
+
+            small_jobs_q = [self.jobs.get() for _ in range(self.small_batch_lim)]
+
+            tasks = [asyncio.create_task(self.run_job(job["ip"], job["id"], self.credentials)) for job in small_jobs_q]
+            self.job_tasks = tasks
+            await asyncio.gather(*tasks)
         
         # jobs are done processing
         self.running = False
@@ -119,6 +125,7 @@ class BatchOptScreen(App):
 
     # runs an individual job
     async def run_job(self, ip: str, id: str,  credentials: tuple, max_retries: int = 3):
+        
         stat_label = self.query_one(f"#stat-job{id}", Static)
         retry = 0
         self.running = True 
