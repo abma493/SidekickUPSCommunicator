@@ -1,0 +1,31 @@
+5/15/2025
+
+More changes:
+	* Application now halts jobs if their associated device is not compatible
+	  with uploaded firmware file. 
+	
+What can be improved?
+	
+	> Code cleanup required for the most-recently worked files (Batch/driver/etc)
+	  Other files also need to be reworked to comply with organization/coherence
+	
+	> Abort All is still broken, it works only on first sub-batch
+	
+	> When user selects "Abort all", it does not give him option to go 
+	  back to main menu or exit the application.
+	
+	> If one job in the small batch fails, it will take waiting all 3 retries
+	  before loading a new small batch
+	
+	> Changing fixed path on user path input (Edit screen)
+	
+	> Allow parsing for csv files.
+	
+	> There appears to be a sync issue where multiple REQ_CREDS are being made 
+	  when first logging in. This may be an edge case as it doesn't happen every
+	  time.
+		
+	> UI Option selection: allow "Enter" as an alternative to num. select
+
+Upcoming
+    > Quality tests / performance tests pending.

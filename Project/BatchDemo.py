@@ -120,7 +120,7 @@ class BatchOptScreen(App):
         buttons_container = self.query_one(".buttons-container")
         buttons_container.remove_children()
         return_button = Button("RETURN", id="return-button", variant="primary")
-        final_stat = Static(f"jobs succeeded: ({self.success_count}/{len(self.jobs_len)})", id="final-stat")
+        final_stat = Static(f"jobs succeeded: ({self.success_count}/{self.jobs_len})", id="final-stat")
         buttons_container.mount(return_button)
         buttons_container.mount(final_stat)
 
@@ -163,6 +163,13 @@ class BatchOptScreen(App):
                     # access the Support folder
                     support_folder = await navigation_frame.wait_for_selector("#report164190", timeout=10000)
                     await support_folder.click()
+
+                    devstat_frame = page.frame("deviceStatus")
+                    label = await devstat_frame.locator("#devName0").text_content()
+                    if not label:
+                        Logger.log("Label not found.")
+                    else:
+                        Logger.log(f"Label name: {label}")
 
                     if self.mode != Mode.FIRMWARE:
 
@@ -330,15 +337,15 @@ if __name__ == "__main__":
     
     jobs = [
         {"ip": "10.5.3.20", "id": "uno", "status": "READY"},
-        {"ip": "10.5.5.200", "id": "dos", "status": "READY"}, 
-        {"ip": "10.4.3.200", "id": "tres", "status": "READY"}, # flawed
-        {"ip": "10.5.21.200", "id": "cuatro", "status": "READY"},
-        {"ip": "10.5.13.200", "id": "cinco", "status": "READY"},
-        {"ip": "10.6.24.169", "id": "seis", "status": "READY"},
-        {"ip": "10.6.27.11", "id": "siete", "status": "READY"},
-        {"ip": "10.4.17.200", "id": "ocho", "status": "READY"},
-        {"ip": "10.2.21.40", "id": "nueve", "status": "READY"},
-        {"ip": "10.14.7.9", "id": "diez", "status": "READY"},
+        # {"ip": "10.5.5.200", "id": "dos", "status": "READY"}, 
+        # {"ip": "10.4.3.200", "id": "tres", "status": "READY"}, # flawed
+        # {"ip": "10.5.21.200", "id": "cuatro", "status": "READY"},
+        # {"ip": "10.5.13.200", "id": "cinco", "status": "READY"},
+        # {"ip": "10.6.24.169", "id": "seis", "status": "READY"},
+        # {"ip": "10.6.27.11", "id": "siete", "status": "READY"},
+        # {"ip": "10.4.17.200", "id": "ocho", "status": "READY"},
+        # {"ip": "10.2.21.40", "id": "nueve", "status": "READY"},
+        # {"ip": "10.14.7.9", "id": "diez", "status": "READY"},
     ]
     credentials: tuple = ("admin", "UT$Opu$1812")
 

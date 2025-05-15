@@ -5,6 +5,7 @@ from textual.widgets import Select
 from logger import Logger
 from login import login
 import asyncio
+import copy
 from asyncio import Task
 from logger import Logger
 from enum import Enum, auto
@@ -27,6 +28,7 @@ class BatchScreen(Screen):
 
     def __init__(self, path_to_batch: str, path_to_config: str, path_to_firmware: str, current_mode, credentials):
         self.jobs = self.parse_to_list(path_to_batch)
+        self.jobs_c = copy.deepcopy(self.jobs)
         self.jobs_len = len(self.jobs)
         self.path_to_config = path_to_config 
         self.path_to_firmware = path_to_firmware
@@ -100,7 +102,7 @@ class BatchScreen(Screen):
             for i, task in enumerate(self.job_tasks):
 
                 if task != current:
-                    job_id = self.jobs[i]["id"]
+                    job_id = self.jobs_c[i]["id"]
                     self.mark_job_aborted(job_id)
                     task.cancel()
             self.running = False
@@ -229,6 +231,15 @@ class BatchScreen(Screen):
                                 raise # raise ANY fail with job for a retry in outer except block (TODO: Handle fail_by_import separately, like maybe no retry?)
                     else:
                         try:
+
+                            # Check firmware version selected over the one read from current device (job)
+                            devstat_frame = page.frame("deviceStatus")
+                            devmodel = await devstat_frame.locator("#devName0").text_content()
+                            if "GXT5" in devmodel and "UNITY" in self.current_mode:
+                                raise ModeMismatch(f"{devmodel} cannot receive a UNITY firmware update.") 
+                            if "GXT4" in devmodel and "RDU101" in self.current_mode:
+                                raise ModeMismatch(f"{devmodel} cannot receive a UNITY firmware update.")
+
                             # Select the firmware update folder                       
                             firmware_folder = await navigation_frame.wait_for_selector("#report164380", timeout=10000)
                             await firmware_folder.click()
@@ -253,13 +264,13 @@ class BatchScreen(Screen):
             except ModeMismatch as e:
                 Logger.log(f"Job #{id} [{ip}] failure : {e.get_err_msg()}")
                 prog_bar.update(total=100, progress=0)
-                stat_label.update(e.get_err_msg())
-                await asyncio.sleep(5) # let the message show 
+                stat_label.update(e.get_err_msg()) 
+                break
             except Exception as e:
                 retry += 1
                 Logger.log(f"Job #{id} [{ip}] failure : {e}")
                 prog_bar.update(total=100, progress=0)
-                stat_label.update(f"Job failed. Retry: {retry}/{max_retries}")  
+                stat_label.update(f"General failure. Retry: {retry}/{max_retries}")  
                 await asyncio.sleep(5) # let the message show          
             finally: # close the playwright elements before exiting the job
                 if context:

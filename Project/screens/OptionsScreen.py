@@ -12,7 +12,7 @@ from textual.keys import Keys
 # Displayed right after login for user options.
 class OptionsScreen(Screen):
 
-    CSS_PATH="../assets/terminal_opts.css"
+    CSS_PATH="../assets/opts_screen.css"
 
     BINDINGS = [
         ("q", "quit_app"),
@@ -43,7 +43,7 @@ class OptionsScreen(Screen):
                 Option("", disabled=True),
                 "2. Get Diagnostics file",
                 Option("", disabled=True),
-                "3 - Update NTP settings",
+                "3. Update NTP settings",
                 Option("", disabled=True),
                 "4. Update SMTP Relay settings",
                 Option("", disabled=True),

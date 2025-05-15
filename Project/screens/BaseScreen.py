@@ -16,7 +16,7 @@ class LoginMsg(Message):
 # This is the Login/Connection screen shown while driver queries 
 # the web based on a user-provided IP and validates credentials
 class BaseScreen(Screen):
-    CSS_PATH = "../assets/terminal.css"
+    CSS_PATH = "../assets/base_screen.css"
     info_msg: reactive = reactive(str, recompose=True)
 
     def __init__(self, *args, **kwargs):
