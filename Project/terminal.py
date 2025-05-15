@@ -10,8 +10,3 @@ class ScreenApp(App):
 
     def on_mount(self) -> None:
         self.push_screen(BaseScreen())
-
-
-if __name__ == "__main__":
-    app = ScreenApp()
-    app.run()

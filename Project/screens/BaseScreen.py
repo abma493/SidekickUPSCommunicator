@@ -25,7 +25,8 @@ class BaseScreen(Screen):
     def on_mount(self):
         self.screen.styles.background = "darkblue"
         self.screen.styles.border = ("heavy", "white")
-    
+        Logger.log("UI loaded OK.")
+
     def compose(self) -> ComposeResult:
         yield Static("Vertiv Communicator", id="title")
         yield Static("", classes="box")# empty
@@ -47,9 +48,6 @@ class BaseScreen(Screen):
         
         yield Static("", classes="box") # empty
 
-        with Horizontal(id="ipfiles-button"):
-            yield Checkbox("[Supply file of IPs]", value=False, id="checkbox-ipfiles")
-
         with Horizontal(id="ok-button"):
             yield Button("<OK>", id="ok")
 
@@ -66,7 +64,6 @@ class BaseScreen(Screen):
     # Using Textual's work decorator to run as an async worker
     @work(exclusive=True)
     async def process_login_async(self):
-        Logger.log("Attempting login...")
         
         inputs = {
             'username': self.query_one("#username", Input).value,
@@ -130,18 +127,9 @@ class BaseScreen(Screen):
     
     @on(LoginMsg)
     def handle_login_result(self, message: LoginMsg):
-        """Handle login result message"""
         if message.success:
             self.app.push_screen(OptionsScreen())
         
         # Update info message with login result
         self.info_msg = message.message
 
-
-    # TO BE REMOVED / MODIFIED
-    @on(Checkbox.Changed, "#checkbox-ipfiles")
-    def on_check_batch(self, event: Checkbox.Changed) -> None:
-        """Handle batch checkbox changes"""
-        if event.value:
-            batch_label = self.query_one("#optional-batch", Static)
-            batch_label.update("Path to batch file:")

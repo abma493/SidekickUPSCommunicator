@@ -1,4 +1,5 @@
 from common.common_term import *
+from syncprims import send_request
 
 
 class QuitScreen(ModalScreen):
@@ -14,8 +15,9 @@ class QuitScreen(ModalScreen):
             id="dialog",
         )
 
-    def on_button_pressed(self, event: Button.Pressed) -> None:
+    async def on_button_pressed(self, event: Button.Pressed) -> None:
         if event.button.id == "quit":
+            await send_request("QUIT")
             self.app.exit()
         else:
             self.app.pop_screen()

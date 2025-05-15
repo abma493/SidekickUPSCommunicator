@@ -1,7 +1,6 @@
 from common.common_term import *
 from syncprims import send_request
 from logger import Logger
-import asyncio
 
 class MessageMsg(Message):
     

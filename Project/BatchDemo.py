@@ -8,7 +8,6 @@ import asyncio
 from asyncio import Task
 from logger import Logger
 from enum import Enum, auto
-from queue import Queue
 
 class Mode(Enum):
     EXPORT = auto()
@@ -24,8 +23,9 @@ class BatchOptScreen(App):
     BINDINGS = [('q', 'quit_app')]
 
     def __init__(self, jobs: list, credentials):
-        self.jobs: Queue = jobs
-        self.job_tasks: Task = []
+        self.jobs: list = jobs
+        self.jobs_len = len(self.jobs)
+        self.job_tasks: list[Task] = []         
         self.credentials = credentials
         self.running = False
         self.mode_export = Mode.EXPORT
@@ -103,11 +103,13 @@ class BatchOptScreen(App):
     async def run_batch_ops(self):
 
         # run the batch (queue) of jobs by (m) sub-batches of (n) jobs 
-        while not self.jobs.empty():
+        while self.jobs:
 
-            small_jobs_q = [self.jobs.get() for _ in range(self.small_batch_lim)]
+            # fifo retrieval of 5 jobs into a list (l)
+            small_jobs_l = self.jobs[:min(self.small_batch_lim, len(self.jobs))]
+            self.jobs = self.jobs[min(self.small_batch_lim, len(self.jobs)):]
 
-            tasks = [asyncio.create_task(self.run_job(job["ip"], job["id"], self.credentials)) for job in small_jobs_q]
+            tasks = [asyncio.create_task(self.run_job(job["ip"], job["id"], self.credentials)) for job in small_jobs_l]
             self.job_tasks = tasks
             await asyncio.gather(*tasks)
         
@@ -118,7 +120,7 @@ class BatchOptScreen(App):
         buttons_container = self.query_one(".buttons-container")
         buttons_container.remove_children()
         return_button = Button("RETURN", id="return-button", variant="primary")
-        final_stat = Static(f"jobs succeeded: ({self.success_count}/{len(self.jobs)})", id="final-stat")
+        final_stat = Static(f"jobs succeeded: ({self.success_count}/{len(self.jobs_len)})", id="final-stat")
         buttons_container.mount(return_button)
         buttons_container.mount(final_stat)
 
@@ -134,7 +136,7 @@ class BatchOptScreen(App):
             try:
                 stat_label.update("Connecting...")
                 playwright = await async_playwright().start()
-                browser = await playwright.firefox.launch(headless=False)
+                browser = await playwright.firefox.launch(headless=True)
                 context = await browser.new_context() 
                 url = f"http://{ip}/web/initialize.htm"
                 page = await context.new_page()
@@ -208,6 +210,7 @@ class BatchOptScreen(App):
                             
                             # Click the enable button 
                             detail_frame = page.frame("detailArea")
+
                             enable_button = await detail_frame.wait_for_selector("#enableComms")
                             await enable_button.click() 
 
@@ -327,9 +330,15 @@ if __name__ == "__main__":
     
     jobs = [
         {"ip": "10.5.3.20", "id": "uno", "status": "READY"},
-        # {"ip": "10.5.5.200", "id": "dos", "status": "READY"}, 
-        #{"ip": "10.4.3.200", "id": "tres", "status": "READY"}, # flawed
-        # {"ip": "10.5.21.200", "id": "cuatro", "status": "READY"}
+        {"ip": "10.5.5.200", "id": "dos", "status": "READY"}, 
+        {"ip": "10.4.3.200", "id": "tres", "status": "READY"}, # flawed
+        {"ip": "10.5.21.200", "id": "cuatro", "status": "READY"},
+        {"ip": "10.5.13.200", "id": "cinco", "status": "READY"},
+        {"ip": "10.6.24.169", "id": "seis", "status": "READY"},
+        {"ip": "10.6.27.11", "id": "siete", "status": "READY"},
+        {"ip": "10.4.17.200", "id": "ocho", "status": "READY"},
+        {"ip": "10.2.21.40", "id": "nueve", "status": "READY"},
+        {"ip": "10.14.7.9", "id": "diez", "status": "READY"},
     ]
     credentials: tuple = ("admin", "UT$Opu$1812")
 

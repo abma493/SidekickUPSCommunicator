@@ -125,7 +125,7 @@ class OptionsScreen(Screen):
                 Logger.log(f"Driver communication error: {e}")
             # Pass the validated paths to batch, config, firmware and creds. Bad paths or lack of paths result in 
             # passing None, which BatchScreen handles to disable specific batch operations.
-            self.app.push_screen(BatchScreen(self.path_to_batch, self.path_to_config, self.path_to_firmware, creds))
+            self.app.push_screen(BatchScreen(self.path_to_batch, self.path_to_config, self.path_to_firmware, self.current_mode, creds))
         else:
             Logger.log("No batch file loaded onto program.")
 

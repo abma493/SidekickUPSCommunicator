@@ -1,4 +1,5 @@
-from threading import Semaphore, Condition
+from threading import Semaphore
+from asyncio import Condition
 from queue import Queue
 
 comm_queue = Queue() # a message at a time, where the message is a dictionary struct
@@ -15,9 +16,9 @@ async def send_request(request_type: str, message=None):
                             'message': message
     } 
 
-    with queue_cond:
+    async with queue_cond:
         comm_queue.put(request)
-        queue_cond.notify() # let listen() know there's a request--lets go of lock
+        queue_cond.notify() # listen() in driver gets request
                 
     sem_UI.acquire()
     response = dict(comm_queue.get()).get("message")

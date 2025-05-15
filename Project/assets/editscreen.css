@@ -2,8 +2,8 @@
 #edit-modal {
     layout: grid;
     grid-size: 2;
-    grid-rows: auto auto auto auto;
-    grid-columns: 40 40;
+    grid-rows: auto auto auto auto auto auto auto;
+    grid-columns: 1fr 1fr;
     grid-gutter: 1 2;
     width: 90%;
     height: 60%;
@@ -61,7 +61,6 @@
     align-horizontal: center;
 }
 
-
 /* Custom styling for the modal screen */
 EditScreen {
     align: center middle;
@@ -105,3 +104,26 @@ Select > .select--option-highlighted {
 
 /* Custom color variables to match the Vertiv Configuration Tool */
 $surface: darkblue;
+
+#firmware-container {
+    column-span: 1;
+    width: 100%;
+    height: auto;
+    background: darkblue;
+}
+
+#firmware-text {
+    color: white;
+    width: auto;
+    padding: 1 1;
+    margin: 0;
+    content-align: left middle;
+}
+
+#firmware-button {
+    width: auto;
+    background: darkblue;
+    padding: 1 1;
+    margin: 0;
+    content-align: left middle;
+}

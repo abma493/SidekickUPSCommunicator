@@ -4,20 +4,21 @@ from terminal import ScreenApp
 from logger import Logger
 import threading
 
-async def async_load_driver():
+async def load_driver():
     driver = Driver()
     await driver.init()
-    await driver.listen()
-    Logger.log("Driver loaded OK.")
-
+    
+    listen_t = asyncio.create_task(driver.listen())
+    poll_t = asyncio.create_task(driver.chk_for_logout())
+    driver_tasks = [listen_t, poll_t]
+    await asyncio.gather(*driver_tasks)
+    
 def run_ui():
     app = ScreenApp()
     app.run()
-    Logger.log("UI loaded OK.")
 
 async def main():
     Logger.configure(log_file="app.log", console=False, level="INFO")
-    Logger.log("Loading driver and UI threads...")
 
     # Create a thread for the UI 
     # It's a daemon so it shutsdown along with main 
@@ -25,7 +26,7 @@ async def main():
     ui_thread.start()
 
     # Run the driver in the asyncio event loop
-    await async_load_driver()
+    await load_driver()
 
     # Wait for UI thread to complete
     ui_thread.join()

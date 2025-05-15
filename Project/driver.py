@@ -1,4 +1,5 @@
 import asyncio
+import time
 from login import setup, login
 from ntwk_ops import NetworkOptions
 from syncprims import sem_driver, sem_UI, comm_queue, queue_cond
@@ -34,6 +35,8 @@ class Driver():
         self.username = ""
         self.password = ""
         self.ip = ""
+        self.quit: bool = False
+        self.chk_e: asyncio.Event = asyncio.Event()
 
     # Controller will defer connection and login to login.py
     async def init(self):
@@ -49,7 +52,45 @@ class Driver():
         # Fetch the communications tab 
         await asyncio.sleep(mini_wait)
         
+        # load the resources to provide configuration options
         await self.load_comms_tab()
+            
+    # Periodically poll every (n) seconds the playwright page object to see if
+    # user has been logged out due to inactivity. If so, re-login the user
+    async def chk_for_logout(self, threshold=120):
+
+        Logger.log("CHK_LOGOUT started OK.")
+        raise_f:bool = False
+
+        while not self.quit:
+
+            try:
+
+                for _ in range(threshold):
+                    if self.quit:
+                        break
+                    await asyncio.sleep(1)
+                
+                Logger.log(f'CHK_LOGOUT triggered by threshold of {threshold} seconds')
+                try:
+                    await self.page.wait_for_url(
+                        lambda url: url.startswith(f"http://{self.ip}/web/initialize.htm?mode=sessionTmo"), timeout=1000
+                    )
+                    Logger.log("LOGOUT Flag raised.")
+                    login_success = await login(self.page, self.username, self.password)
+                    
+                    if login_success:
+                        await self.load_comms_tab()
+                        Logger.log("Successful re-login after inactivity.")
+                    else:
+                        raise_f = True
+                        Logger.log("Fatal error on auto-login after inactivity logout.")
+                except:
+                    if raise_f:
+                        raise
+
+            except Exception as e:
+                Logger.log(f'CHK_LOGOUT error: {e}')
 
     # Set a connection with an IP, if successful AND a single IP operation request,
     # then connection is maintained. Otherwise (batch operation), single IP from the batch is
@@ -100,7 +141,7 @@ class Driver():
             
             response = {
                 'login': login_success,
-                'message': "Login successful." if login_success else "Login failed due to bad credentials. Try again."
+                'message': "Login successful." if login_success else "INFO: Login failed due to bad credentials. Try again."
             }
 
             comm_queue.put(response)
@@ -122,15 +163,15 @@ class Driver():
     # SET : user requests by UI interaction
     async def listen(self):
         
-        while True:
+        Logger.log("Driver listener started OK.")
+        while not self.quit:
             
-            with queue_cond:
+            async with queue_cond:
+
                 # use a Condition lock to wait until a request is present
                 while comm_queue.empty(): 
-                    Logger.log("listen() waiting... (lets go of lock)")
-                    queue_cond.wait()
+                    await queue_cond.wait()
 
-                Logger.log(f" (Lock reacquired) Queue has requests to process...")
                 response: dict = comm_queue.get() # Retrieve UI request
                 action: str = response.get("request")
                 message = response.get("message")
@@ -151,7 +192,7 @@ class Driver():
         if req.upper() not in Request.__members__:
             Logger.log("Error parsing request")
             return ERR_EXIT # Request failed
-        Logger.log(f"Fetching {req} w/ message {message}...")
+
         request: Request = Request[req.upper()]
         match request:
             case Request.QUIT:
@@ -181,6 +222,9 @@ class Driver():
 
     # New method to clean up Playwright resources
     async def cleanup(self):
+        Logger.log("CLEANUP on exit.")
+        self.quit = True
+
         if self.browser:
             await self.browser.close()
         if self.playwright:

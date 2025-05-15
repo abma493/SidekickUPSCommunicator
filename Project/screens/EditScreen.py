@@ -1,9 +1,8 @@
 from textual import on
-from textual.app import ComposeResult
-from textual.containers import Container
+from textual.app import ComposeResult, App
+from textual.containers import Container, Horizontal, Vertical
 from textual.screen import ModalScreen
 from textual.widgets import Button, Input, Label, Select
-from logger import Logger
 
 
 class EditScreen(ModalScreen):
@@ -13,6 +12,7 @@ class EditScreen(ModalScreen):
     def __init__(self):
         super().__init__()
         self.batch_mode = False
+        self.firmware_label = "IS-UNITY"
     
     def compose(self) -> ComposeResult:
         
@@ -20,7 +20,7 @@ class EditScreen(ModalScreen):
             yield Label("Edit Mode", id="title")
             yield Label("Current Mode: Single", id="mode-label")
             yield Select(
-                ((option, option) for option in ["Single", "Batch"]),
+                ((option, option) for option in ["Single", "Batch (RDU101)", "Batch (IS-UNITY)"]),
                 value="Single",
                 id="mode-select"
             )
@@ -34,13 +34,12 @@ class EditScreen(ModalScreen):
         
     
     def on_mount(self) -> None:
-        """Event handler called when the screen is mounted."""
         self.query_one("#mode-select").focus()
     
     @on(Select.Changed, "#mode-select")
     def on_mode_changed(self, event: Select.Changed) -> None:
         
-        self.batch_mode = event.value == "Batch"
+        self.batch_mode = "Batch" in event.value
         path_batch = self.query_one("#path-batch")
         path_config = self.query_one("#path-config")
         mode_label = self.query_one("#mode-label")
@@ -55,6 +54,19 @@ class EditScreen(ModalScreen):
             path_batch.disabled = True
             path_config.disabled = True
     
+    @on(Button.Pressed, "#firmware-button")
+    async def on_firmware_pressed(self) -> None:
+        button: Button = self.query_one("#firmware-button")
+        updated_label: str = ""
+
+        if button.label == "IS-UNITY":
+            updated_label = "RDU101"
+        else:
+            updated_label = "IS-UNITY"
+        button.remove()
+        new_button = Button(updated_label, id="firmware-button")
+        self.query_one("#firmware-container").mount(new_button)
+
     @on(Button.Pressed, "#ok-button")
     def on_ok_pressed(self) -> None:
         

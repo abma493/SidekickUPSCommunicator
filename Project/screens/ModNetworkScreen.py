@@ -21,7 +21,6 @@ class ModNetworkScreen(ModalScreen):
     ]
 
     async def on_mount(self):
-        Logger.log("Loading ModNetworkScreen resources...")
         self.dhcp_checkbox: Checkbox = self.query_one("#dhcp-checkbox")
         self.current_ip = self.query_one("#current-ip", Static)
         self.current_subnet = self.query_one("#current-subnet", Static)

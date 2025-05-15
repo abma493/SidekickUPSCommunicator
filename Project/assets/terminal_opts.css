@@ -33,4 +33,5 @@ Button {
     border: none;
     background: darkblue;
     color:white;
+    text-align: center;
 }
