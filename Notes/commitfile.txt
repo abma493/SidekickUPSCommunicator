@@ -1,13 +1,19 @@
 Major changes (5/14)
 
+
+>  Sub-batch feature added to handle big batch files
+   * small (sub) batch files are 5 entries
+   * big batch files are 10+ entries
+
 > Re-login feature added
     * Users can now remain idle in the application.
       Upon login, credentials are cached and used
       to log the user back in during inactivity triggers
 
->  Sub-batch feature added to handle big batch files
-   * small (sub) batch files are 5 entries
-   * big batch files are 10+ entries
+> App now shuts down completely without hanging
+    * Long standing issue where quitting by user request (Q) would not successfully quit,
+      instead hanging due to ongoing loops (listen() being the likely culprit)
+    * app now shuts down its (now) two ongoing while loops by checking for a quit request
 
 > Some cleanups around code segments
 
@@ -16,3 +22,4 @@ Major changes (5/14)
       RDU101/UNITY are still pending.
     * Ran into issues with DOM selection of element
       with firmware data. 
+    * Working on allowing "Enter" key to work on option selection menu

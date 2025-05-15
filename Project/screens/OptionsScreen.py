@@ -7,6 +7,7 @@ from logger import Logger
 from .BatchScreen import BatchScreen
 import asyncio
 from syncprims import send_request
+from textual.keys import Keys
 
 # Displayed right after login for user options.
 class OptionsScreen(Screen):
@@ -18,7 +19,8 @@ class OptionsScreen(Screen):
         ("e", "edit_settings"),
         ("1", "mod_network_settings"),
         ("6", "restart_card"),
-        ("7", "batch_operations")
+        ("7", "batch_operations"),
+        (Keys.Enter, "activate_current_opt")
     ]
 
     def __init__(self):
@@ -129,6 +131,27 @@ class OptionsScreen(Screen):
         else:
             Logger.log("No batch file loaded onto program.")
 
+
+    def action_activate_current_opt(self) -> None:
+        opts_list = self.query_one("#opts-list", OptionList)
+
+        if opts_list.highlighted is not None:
+
+            highlighted_i = opts_list.highlighted
+
+            option_actions = {
+                0: self.action_mod_network_settings,
+                2: lambda: None,
+                4: lambda: None,
+                6: lambda: None,
+                8: lambda: None,
+                10: self.action_restart_card,
+                12: self.action_batch_operations
+            }
+
+            if highlighted_i in option_actions:
+                action = option_actions[highlighted_i]
+                action()
 
 # For explicitly requesting to restart ONE device's webcard
 class RestartScreen(ModalScreen):
