@@ -22,6 +22,7 @@ class EditScreen(ModalScreen):
             yield Select(
                 ((option, option) for option in ["Single", "Batch (RDU101)", "Batch (IS-UNITY)"]),
                 value="Single",
+                prompt="",
                 id="mode-select"
             )
             
