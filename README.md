@@ -7,4 +7,4 @@ As of 5/15/2025:
 
 This project is still in progress, and work is planned for Unix-like environment compatibility.
 There may (and most likely are) be hiccups when running large (10+) batch files. At this time this is still being polished.
-Most other options are not yet functional besides 1/7 (Batch)/6. 
+Most other options are not yet fully functional since the priority has been getting the batch stuff going.
