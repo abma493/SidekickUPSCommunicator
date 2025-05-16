@@ -20,7 +20,6 @@ class OptionsScreen(Screen):
         ("1", "mod_network_settings"),
         ("6", "restart_card"),
         ("7", "batch_operations"),
-        (Keys.Enter, "activate_current_opt")
     ]
 
     def __init__(self):
@@ -132,26 +131,24 @@ class OptionsScreen(Screen):
             Logger.log("No batch file loaded onto program.")
 
 
-    def action_activate_current_opt(self) -> None:
-        opts_list = self.query_one("#opts-list", OptionList)
+    # Used by OptionsList UI component to handle selection on "Enter" by user
+    def on_option_list_option_selected(self, event: OptionList.OptionSelected) -> None:
+        
+        index = event.option_index
 
-        if opts_list.highlighted is not None:
+        option_actions = {
+            0: self.action_mod_network_settings,
+            2: lambda: None,
+            4: lambda: None,
+            6: lambda: None,
+            8: lambda: None,
+            10: self.action_restart_card,
+            12: self.action_batch_operations
+        }
 
-            highlighted_i = opts_list.highlighted
-
-            option_actions = {
-                0: self.action_mod_network_settings,
-                2: lambda: None,
-                4: lambda: None,
-                6: lambda: None,
-                8: lambda: None,
-                10: self.action_restart_card,
-                12: self.action_batch_operations
-            }
-
-            if highlighted_i in option_actions:
-                action = option_actions[highlighted_i]
-                action()
+        if index in option_actions:
+            action = option_actions[index]
+            action()
 
 # For explicitly requesting to restart ONE device's webcard
 class RestartScreen(ModalScreen):
@@ -161,7 +158,7 @@ class RestartScreen(ModalScreen):
             super().__init__()
             self.success = success
 
-    CSS_PATH = "./assets/restart_popup.css"
+    CSS_PATH = "../assets/restart_popup.css"
 
     async def on_mount(self) -> None:
 

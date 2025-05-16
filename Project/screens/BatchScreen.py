@@ -2,10 +2,12 @@ from common.common_term import *
 from playwright.async_api import async_playwright, expect, Page, BrowserContext, TimeoutError as PlaywrightTimeoutError
 from common.common_imports import default_timeout
 from textual.widgets import Select
+from syncprims import send_request
 from logger import Logger
 from login import login
 import asyncio
 import copy
+from .QuitScreen import QuitScreen
 from asyncio import Task
 from logger import Logger
 from enum import Enum, auto
@@ -61,6 +63,12 @@ class BatchScreen(Screen):
 
         return jobs
 
+    async def on_mount(self):
+        chg_t: bool = await send_request("CHG_THRESHOLD", 15)
+        if not chg_t:
+            self.app.panic(Label("APP PANIC: FATAL ERROR ADJUSTING CHK_LOGOUT THRESHOLD."))
+        self.quit_button = self.query_one("#quit-button", Button)
+        self.back_button = self.query_one("#back-button", Button)
 
     def compose(self) -> ComposeResult:
         
@@ -82,6 +90,8 @@ class BatchScreen(Screen):
             with Horizontal(classes="buttons-container"):
                 yield Button("<Abort All>", id="abort-all")
                 yield Button("<Kill Job>", id="kill-button")  
+                yield Button("<B - Back>", id="back-button")
+                yield Button("<Q - Quit>", id="quit-button")
                 yield Button("<Run>", id="run-button")
                 yield Select(
                     ((option, option) for option in ["Export", "Import", "Firmware Update"]),
@@ -91,8 +101,18 @@ class BatchScreen(Screen):
                 )
 
     @on(Button.Pressed, "#return-button")
-    def on_return_pressed(self) -> None:
+    async def on_return_pressed(self) -> None:
+        chg_t = await send_request("CHG_THRESHOLD", 120)
         self.app.pop_screen()
+
+    @on(Button.Pressed, "#back-button")
+    async def on_back_pressed(self) -> None:
+        chg_t = await send_request("CHG_THRESHOLD", 120)
+        self.app.pop_screen()
+    
+    @on(Button.Pressed, "#quit-button")
+    def on_quit_pressed(self) -> None:
+        self.app.push_screen(QuitScreen())
 
     @on(Button.Pressed, "#abort-all")
     async def on_abort_pressed(self) -> None:
@@ -106,10 +126,14 @@ class BatchScreen(Screen):
                     self.mark_job_aborted(job_id)
                     task.cancel()
             self.running = False
+            self.back_button.disabled = False
+            self.quit_button.disabled = False
 
 
     @on(Button.Pressed, "#run-button")
     async def on_run_pressed(self) -> None:
+        self.back_button.disabled = True
+        self.quit_button.disabled = True
         self.run_worker(self.run_batch_ops(), exclusive=True)
 
     @on(Select.Changed, "#mode-select")
@@ -344,7 +368,7 @@ class BatchScreen(Screen):
                 await page.locator('form[name="firmwareHttpForm"] input[id="Firmware File Upload"]').click()
             
             stat_label.update("Uploading file...")
-            self.query_one(f"#{id}", ProgressBar).advance(5) 
+            self.query_one(f"#{id}", ProgressBar).advance(10) 
             
             # upload the file
             file_chooser = await fc_info.value
@@ -361,12 +385,12 @@ class BatchScreen(Screen):
             # writing is ready
             await expect(stat_element).to_contain_text("Writing", timeout=600000, ignore_case=True)
             stat_label.update("Writing...")
-            self.query_one(f"#{id}", ProgressBar).advance(5)
+            self.query_one(f"#{id}", ProgressBar).advance(15)
 
             # rebooting is set (card firmware successful) May take up to 10 minutes
             await expect(stat_element).to_contain_text("rebooting", timeout=600000, ignore_case=True)
             stat_label.update("Rebooting card...")
-            self.query_one(f"#{id}", ProgressBar).advance(10)
+            self.query_one(f"#{id}", ProgressBar).advance(15)
 
             # click on the return button once its enabled (this is the end of operation)
             await page.locator("#GoHomeB").click(timeout=600000)

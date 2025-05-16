@@ -21,7 +21,7 @@ async def main():
     Logger.configure(log_file="app.log", console=False, level="INFO")
 
     # Create a thread for the UI 
-    # It's a daemon so it shutsdown along with main 
+    # It's a daemon so it exits along with main thread 
     ui_thread = threading.Thread(target=run_ui, daemon=True)
     ui_thread.start()
 

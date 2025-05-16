@@ -26,7 +26,8 @@ async def restart_card(page: Page, ip) -> True:
     await restart_card_button.click()
     Logger.log("Restart occuring...")
     try: # wait for the login prompt to appear again for 10 minutes MAX
-        await page.wait_for_url(f"http://{ip}/web/initialize.htm?mode=reboot", timeout=600000)
+        await page.wait_for_url(f"http://{ip}/web/initialize.htm?mode=reboot")
+        await page.wait_for_selector("#username", state="visible", timeout=600000)
         return True
     except TimeoutError as e:
         Logger.log(f"Timeout Error during reboot wait: {e}")

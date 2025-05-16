@@ -1,5 +1,4 @@
 import asyncio
-import time
 from login import setup, login
 from ntwk_ops import NetworkOptions
 from syncprims import sem_driver, sem_UI, comm_queue, queue_cond
@@ -20,6 +19,7 @@ class Request(Enum):
     SET_DHCP = auto()
     SET_STATIC = auto()
     REQ_CREDS = auto()
+    CHG_THRESHOLD = auto()
     
 
 # The Driver class serves as the liason between Textual's UI implementations
@@ -36,9 +36,10 @@ class Driver():
         self.password = ""
         self.ip = ""
         self.quit: bool = False
+        self.threshold = 120
         self.chk_e: asyncio.Event = asyncio.Event()
 
-    # Controller will defer connection and login to login.py
+    # Driver will defer connection and login to login.py
     async def init(self):
 
         sem_driver.acquire()
@@ -48,16 +49,13 @@ class Driver():
         # critical part of init: connect and authenticate
         await self.establish_connect(credentials)
         await self.authenticate(credentials)    
-
-        # more on mini_wait under common_imports.py TODO: rem this
-        await asyncio.sleep(mini_wait)
         
         # load the resources to provide configuration options
         await self.load_comms_tab()
             
     # Periodically poll every (n) seconds the playwright page object to see if
     # user has been logged out due to inactivity. If so, re-login the user
-    async def chk_for_logout(self, threshold=120):
+    async def chk_for_logout(self):
 
         Logger.log("CHK_LOGOUT started OK.")
         raise_f:bool = False
@@ -66,12 +64,12 @@ class Driver():
 
             try:
 
-                for _ in range(threshold):
+                for _ in range(self.threshold):
                     if self.quit:
                         break
                     await asyncio.sleep(1)
                 
-                Logger.log(f'CHK_LOGOUT triggered by threshold of {threshold} seconds')
+                Logger.log(f'CHK_LOGOUT triggered by threshold of {self.threshold} seconds')
                 try:
                     await self.page.wait_for_url(
                         lambda url: url.startswith(f"http://{self.ip}/web/initialize.htm?mode=sessionTmo"), timeout=1000
@@ -123,11 +121,10 @@ class Driver():
             # sem_driver is 0 so it will wait
 
         sem_driver.release()
-        # Wait a moment before proceeding TODO: rem this
-        await asyncio.sleep(mini_wait)
 
     # Handles the authentication 
     async def authenticate(self, credentials):
+        
         while True: # VERIFY LOGIN SUCCESS
             sem_driver.acquire() # 1->0
 
@@ -214,6 +211,9 @@ class Driver():
                 return await self.networkops.enable_static()
             case Request.REQ_CREDS:
                 return self.send_creds()
+            case Request.CHG_THRESHOLD:
+                self.threshold = int(message)
+                return True
             case _:
                 Logger.log("NO request parsed")
                 pass

@@ -2,6 +2,7 @@ import asyncio
 from common.common_imports import *
 from playwright.async_api import async_playwright, TimeoutError as PlaywrightTimeoutError
 from logger import Logger
+from playwright.async_api import Page
 
 # Playwright setup function
 async def setup(web: str):
@@ -34,7 +35,7 @@ async def setup(web: str):
         return None, None, None
 
 # Login function
-async def login(page, user: str, passwd: str) -> bool:
+async def login(page: Page, user: str, passwd: str) -> bool:
     try:
         # Username field
         user_field = await page.wait_for_selector("#username", state="visible", timeout=default_timeout)
@@ -53,16 +54,13 @@ async def login(page, user: str, passwd: str) -> bool:
         # Click login button
         login_button = await page.wait_for_selector("#login", state="visible", timeout=default_timeout)
         await login_button.click()
-
-        # Wait a bit after clicking login TODO: rem this!
-        await asyncio.sleep(mini_wait)  
              
         # Check for login error
-        login_error = await page.query_selector("#loginError")
-        if login_error:
-            is_visible = await login_error.is_visible()
-            if is_visible:
-                return False
+        try:
+            await page.wait_for_selector("#loginError", timeout=5000)
+            return False
+        except:
+            pass
         
         return True
         

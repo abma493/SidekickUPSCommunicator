@@ -16,6 +16,7 @@ Grid {
     width: 60;
     height: 11;
     border: thick white;
+    content-align: center middle;
     background: darkblue;
 }
 
