@@ -27,18 +27,18 @@ class BatchScreen(Screen):
     CSS_PATH = "../assets/batchops.css"
 
     def __init__(self, path_to_batch: str, path_to_config: str, path_to_firmware: str, current_mode, credentials):
-        self.jobs = self.parse_to_list(path_to_batch)
-        self.jobs_c = copy.deepcopy(self.jobs)
-        self.jobs_len = len(self.jobs)
-        self.path_to_config = path_to_config 
-        self.path_to_firmware = path_to_firmware
-        self.job_tasks: list[Task] = []
-        self.current_mode = current_mode
-        self.credentials = credentials 
-        self.running = False   
-        self.mode = Mode.EXPORT
-        self.success_count = 0 # num of jobs completed successfully
-        self.small_batch_lim = 5
+        self.jobs = self.parse_to_list(path_to_batch)           # dynamic list that will have elements removed upon completion
+        self.jobs_c = copy.deepcopy(self.jobs)                  # TODO temporary solution to the "abort all" func
+        self.jobs_len = len(self.jobs)                          # holds original len of jobs for final stat
+        self.path_to_config = path_to_config                    # config file path (verified to exist)
+        self.path_to_firmware = path_to_firmware                # firmware file path (verified to exist)
+        self.job_tasks: list[Task] = []                         # Used by "abort all" to purge all jobs (Experimental)
+        self.current_mode = current_mode                        # Determines if batch firmware updates are for RDU101/UNITY
+        self.credentials = credentials                          # Cached user creds passed here for job completion
+        self.running = False                                    # used by "abort all"
+        self.mode = Mode.EXPORT                                 # determines mode (EXPORT by default, IMPORT or FIRMWARE UP)
+        self.success_count = 0                                  # num of jobs completed successfully
+        self.small_batch_lim = 5                                # used to limit range of active jobs in large batch files
         super().__init__()
 
     # parse the IPs in the batch file to a list of jobs 
@@ -157,7 +157,10 @@ class BatchScreen(Screen):
         buttons_container.mount(return_button)
         buttons_container.mount(final_stat)
 
+
+
     # Run a single job and perform the select operation (EXPORT/IMPORT/FIRMWARE_UPDATE)
+    # TODO: This function needs to have subroutines bc its too long.
     async def run_job(self, ip: str, id: str,  credentials: tuple, max_retries: int = 3):
         stat_label = self.query_one(f"#{id}-stat", Static)
         prog_bar = self.query_one(f"#{id}", ProgressBar)

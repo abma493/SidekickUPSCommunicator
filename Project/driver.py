@@ -49,7 +49,7 @@ class Driver():
         await self.establish_connect(credentials)
         await self.authenticate(credentials)    
 
-        # Fetch the communications tab 
+        # more on mini_wait under common_imports.py TODO: rem this
         await asyncio.sleep(mini_wait)
         
         # load the resources to provide configuration options
@@ -123,7 +123,7 @@ class Driver():
             # sem_driver is 0 so it will wait
 
         sem_driver.release()
-        # Wait a moment before proceeding
+        # Wait a moment before proceeding TODO: rem this
         await asyncio.sleep(mini_wait)
 
     # Handles the authentication 

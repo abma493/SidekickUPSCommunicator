@@ -54,7 +54,7 @@ async def login(page, user: str, passwd: str) -> bool:
         login_button = await page.wait_for_selector("#login", state="visible", timeout=default_timeout)
         await login_button.click()
 
-        # Wait a bit after clicking login
+        # Wait a bit after clicking login TODO: rem this!
         await asyncio.sleep(mini_wait)  
              
         # Check for login error
