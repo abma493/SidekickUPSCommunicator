@@ -7,13 +7,11 @@ from enum import Enum, auto
 from logger import Logger
 from restart_card import restart_card
 
-GRACEFUL_EXIT = 0
-ERR_EXIT = -1
-
+# ENUM for the user requests via UI to driver
 class Request(Enum):
     QUIT = auto()
     RESTART = auto()
-    GET_NTWK_OPS_R = auto()
+    GET_NTWK_OPS = auto()
     SET_IP = auto()
     SET_SUBNET = auto()
     SET_DHCP = auto()
@@ -36,10 +34,10 @@ class Driver():
         self.password = ""
         self.ip = ""
         self.quit: bool = False
-        self.threshold = 120
+        self.threshold = 90
         self.chk_e: asyncio.Event = asyncio.Event()
 
-    # Driver will defer connection and login to login.py
+    # Driver will defer connection and login (login.py)
     async def init(self):
 
         sem_driver.acquire()
@@ -154,7 +152,6 @@ class Driver():
 
         sem_driver.acquire() # should be 1 THEN decrement at successful login
 
-
     # listen for requests from the UI thread. (GET/SET)
     # GET : for UI component at load time
     # SET : user requests by UI interaction
@@ -169,10 +166,12 @@ class Driver():
                 while comm_queue.empty(): 
                     await queue_cond.wait()
 
-                response: dict = comm_queue.get() # Retrieve UI request
-                action: str = response.get("request")
-                message = response.get("message")
-                msg_reply = await self.parse_request(action, message)
+                response: dict = comm_queue.get()       # Retrieve UI request
+                action: str = response.get("request")   # retrieve the request str
+                message = response.get("message")       # retrieve the contained msg (if applicable)
+                
+                # driver processes request accordingly
+                msg_reply = await self.parse_request(action, message) 
                 
                 response['message'] = msg_reply # change the message with reply
                 
@@ -182,13 +181,13 @@ class Driver():
                 sem_UI.release() # UI ready to parse response
                 Logger.log(f"sem_UI: {sem_UI._value} triggered by {action} [{msg_reply}]")
 
-
     # Takes in a request string and converts it to a Request enum, proceeding to match
-    # the enum value with a specific web request.
+    # the enum value with a specific web request. Matched case will defer control to a 
+    # function to perform the request and return a result if necessary
     async def parse_request(self, req: str, message):
         if req.upper() not in Request.__members__:
             Logger.log("Error parsing request")
-            return ERR_EXIT # Request failed
+            return None # Request failed
 
         request: Request = Request[req.upper()]
         match request:
@@ -197,7 +196,7 @@ class Driver():
                 return None
             case Request.RESTART:
                 return await self.restart_and_login()
-            case Request.GET_NTWK_OPS_R:
+            case Request.GET_NTWK_OPS:
                 return await self.networkops.load_network_folder()
             case Request.SET_IP:
                 Logger.log(f"Setting IP: {message}")
@@ -217,9 +216,8 @@ class Driver():
             case _:
                 Logger.log("NO request parsed")
                 pass
-        
-        return None  # Default return
-
+        return None 
+    
     # New method to clean up Playwright resources
     async def cleanup(self):
         Logger.log("CLEANUP on exit.")
@@ -230,7 +228,6 @@ class Driver():
         if self.playwright:
             await self.playwright.stop()
 
-    
     # Requests a restart from Playwright API to Vertiv site
     # Upon receiving a successful reboot attempt, it will log back in with
     # app-cached credentials (TODO: cred storage should be made safer)
@@ -261,28 +258,22 @@ class Driver():
             Logger.log(f"Error during restart: {str(e)}")
             return False
 
+    # Load the communications tab resources from the web.
+    # This tab is where all operations derive action from.
     async def load_comms_tab(self):
         # Navigate to the communications tab
         try:
             # Switch to default content in Playwright is not needed
             # Find and switch to the tabArea frame
             frame = self.page.frame("tabArea")
-            if frame:
-                # Find and click the communications tab within the frame
-                comms_tab = await frame.wait_for_selector("#tab4", timeout=default_timeout)
-                await comms_tab.click()
-            else:
-                # If the frame can't be found, try to find it by other means
-                frames = self.page.frames
-                for frame in frames:
-                    if "tabArea" in frame.name:
-                        comms_tab = await frame.wait_for_selector("#tab4", timeout=default_timeout)
-                        await comms_tab.click()
-                        break
+
+            # Find and click the communications tab within the frame
+            comms_tab = await frame.wait_for_selector("#tab4", timeout=default_timeout)
+            await comms_tab.click()
         except Exception as e:
             Logger.log(f"Error navigating to communications tab: {e}")
 
-    
+    # Get the user credentials from the driver class
     def send_creds(self):
         return (self.username, self.password)
 

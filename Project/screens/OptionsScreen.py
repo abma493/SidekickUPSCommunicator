@@ -143,7 +143,7 @@ class OptionsScreen(Screen):
             6: lambda: None,
             8: lambda: None,
             10: self.action_restart_card,
-            12: self.action_batch_operations
+            12: self.action_batch_operations,
         }
 
         if index in option_actions:

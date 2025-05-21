@@ -132,8 +132,8 @@ class BatchScreen(Screen):
 
     @on(Button.Pressed, "#run-button")
     async def on_run_pressed(self) -> None:
-        self.back_button.disabled = True
-        self.quit_button.disabled = True
+        self.back_button.disabled = True # Unable to go "back" to prev screen
+        self.quit_button.disabled = True # Unable to quit the app
         self.run_worker(self.run_batch_ops(), exclusive=True)
 
     @on(Select.Changed, "#mode-select")
