@@ -4,4 +4,3 @@
 
 > Warning/alert (NotifMsg screen) added when user selects batch mode in edit screen and one or more file paths are bad.
     * Need to display which file(s) are bad specifically
-

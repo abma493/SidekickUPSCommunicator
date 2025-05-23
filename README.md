@@ -2,6 +2,7 @@ The Vertiv-compatible UPS "Vertiv Communicator" is a lightweight application cur
 This application serves as a tool to do simple modifications on a single device, but it stands out for handling batches of webcards for configuration changes including configuration files and firmware updates. 
 
 My project has no affiliation with Vertiv.
+Read the contents of Notes directory for latest updates in detail.
 
 As of 5/15/2025:
 
