@@ -1,0 +1,39 @@
+InvalidConfigScreen {
+    align: center middle;
+}
+
+#dialog {
+    grid-size: 1;
+    grid-gutter: 1 2;
+    grid-rows: 1fr 3;
+    padding: 0 1;
+    width: 60;
+    height: 11;
+    border: thick white;
+    background: darkblue;
+}
+
+#message {
+    height: 1fr;
+    width: 1fr;
+    content-align: center middle;
+}
+
+#ok {
+    width: 100%;
+    align: center middle;
+}
+
+Grid {
+    border: white;
+    background: darkblue;
+    color: white;
+}
+
+Button {
+    border: none;
+    background: darkblue;
+    color: white;
+    margin: 1 0;
+}
+

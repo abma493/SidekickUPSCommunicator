@@ -2,6 +2,7 @@ from common.common_term import *
 from common.common_imports import os, Operation
 from .QuitScreen import QuitScreen
 from .ModNetworkScreen import ModNetworkScreen
+from .HelpScreen import HelpScreen
 from .EditScreen import EditScreen
 from logger import Logger
 from .BatchScreen import BatchScreen
@@ -59,6 +60,7 @@ class OptionsScreen(Screen):
                 yield Button("E - Edit", id="edit-button")
                 yield Label(f"Mode: Single (Default)", id="status-label")
                 yield Label(f"", id="info-label")
+                yield Button("<?>", id="help-button")
     
     # Quitting the app will ask for confirmation
     def action_quit_app(self) -> None:
@@ -72,6 +74,10 @@ class OptionsScreen(Screen):
     def action_restart_card(self) -> None:
         self.app.push_screen(RestartScreen())
     
+    @on(Button.Pressed, "#help-button")
+    def on_help_pressed(self) -> None:
+        self.app.push_screen(HelpScreen())
+
     # handle editing settings
     def action_edit_settings(self) -> None:
         

@@ -1,0 +1,71 @@
+HelpScreen {
+    align: center middle;
+}
+
+#help-dialog {
+    outline: white;
+    grid-size:1 4;
+    grid-rows: auto 1fr auto auto;
+    padding: 1;
+    width: 80;
+    height: 30;
+    border: thick white;
+    background: darkblue;
+}
+
+#help-title {
+    width: 100%;
+    text-align: center;
+    text-style: bold;
+    color: white;
+    padding: 1 0;
+}
+
+#help-content {
+    width: 100%;
+    height: auto;
+    color: white;
+    padding: 1 2;
+    content-align: left top;
+    overflow-y: scroll;
+    text-wrap: wrap;
+}
+
+#help-buttons {
+    width: auto;
+    height: auto;
+    align: left middle;
+}
+
+#help-buttons Button {
+    min-width: 6;
+    margin: 0 1;
+}
+
+#page-indicator {
+    width: auto;
+    text-align: center;
+    color: white;
+    margin: 0 2;
+}
+
+#close-button {
+    width: 20;
+    dock: right;
+}
+
+Grid {
+    background: darkblue;
+    color: white;
+}
+
+Button {
+    border: none;
+    background: darkblue;
+    color: white;
+}
+
+Button:disabled {
+    opacity: 0.5;
+    color: gray;
+}
