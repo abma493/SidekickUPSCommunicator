@@ -11,6 +11,12 @@ from .QuitScreen import QuitScreen
 from asyncio import Task
 from logger import Logger
 from enum import Enum, auto
+from import_cfg import import_config_file
+from export_cfg import export_config_file
+import aiohttp
+from aiohttp import BasicAuth
+import re
+import asyncio
 
 class ModeMismatch(Exception):
     def __init__(self, message):
@@ -181,8 +187,6 @@ class BatchScreen(Screen):
         buttons_container.mount(return_button)
         buttons_container.mount(final_stat)
 
-
-
     # Run a single job and perform the select operation (EXPORT/IMPORT/FIRMWARE_UPDATE)
     # TODO: This function needs to have subroutines bc its too long.
     async def run_job(self, ip: str, id: str,  credentials: tuple, max_retries: int = 3):
@@ -193,101 +197,96 @@ class BatchScreen(Screen):
         while retry < max_retries:
             try:
                 stat_label.update("Connecting...")
-                playwright = await async_playwright().start()
-                browser = await playwright.firefox.launch(headless=True)
-                context = await browser.new_context() 
-                url = f"http://{ip}/web/initialize.htm"
-                page = await context.new_page()
-                await page.goto(url)
                 
-                login_success = await login(page, credentials[0], credentials[1])
-                if login_success:
-                    # Navigate to the communications tab
-                    prog_bar.advance(30)
-                    stat_label.update("Accessing config folder...")
-        
-                    # Find and switch to the tabArea frame
-                    frame = page.frame("tabArea")
+                if self.mode == Mode.FIRMWARE:
+                    playwright = await async_playwright().start()
+                    browser = await playwright.firefox.launch(headless=True)
+                    context = await browser.new_context() 
+                    url = f"http://{ip}/web/initialize.htm"
+                    page = await context.new_page()
+                    await page.goto(url)
+                    login_success = await login(page, credentials[0], credentials[1])
+                    if login_success:
+                        # Navigate to the communications tab
+                        prog_bar.advance(30)
+                        stat_label.update("Accessing config folder...")
+            
+                        # Find and click the communications tab within the frame
+                        comms_tab = await page.frame("tabArea").wait_for_selector("#tab4", timeout=default_timeout)
+                        await comms_tab.click()
 
-                    # Find and click the communications tab within the frame
-                    comms_tab = await frame.wait_for_selector("#tab4", timeout=default_timeout)
-                    await comms_tab.click()
+                        # go to the nav frame
+                        navigation_frame = page.frame("navigationFrame")
+                        await page.wait_for_timeout(1000)
+                        
+                        # access the Support folder
+                        support_folder = await navigation_frame.wait_for_selector("#report164190", timeout=10000)
+                        await support_folder.click()
 
-                    # go to the nav frame
-                    navigation_frame = page.frame("navigationFrame")
-                    await page.wait_for_timeout(1000)
-                    
-                    # access the Support folder
-                    support_folder = await navigation_frame.wait_for_selector("#report164190", timeout=10000)
-                    await support_folder.click()
+                        # Check firmware version selected over the one read from current device (job)
+                        devstat_frame = page.frame("deviceStatus")
+                        devmodel = await devstat_frame.locator("#devName0").text_content()
+                        if "GXT5" in devmodel and "UNITY" in self.current_mode:
+                            raise ModeMismatch(f"{devmodel} cannot receive a UNITY firmware update.") 
+                        if "GXT4" in devmodel and "RDU101" in self.current_mode:
+                            raise ModeMismatch(f"{devmodel} cannot receive a UNITY firmware update.")
 
-                    if self.mode != Mode.FIRMWARE:
-                        # access the Configuration Export/Import
-                        config_folder = await navigation_frame.wait_for_selector("#report164400", timeout=10000)
-                        await config_folder.click()
-
+                        # Select the firmware update folder                       
+                        firmware_folder = await navigation_frame.wait_for_selector("#report164380", timeout=10000)
+                        await firmware_folder.click()
+                        
                         # Click the enable button 
                         detail_frame = page.frame("detailArea")
                         enable_button = await detail_frame.wait_for_selector("#enableComms")
                         await enable_button.click() 
 
-                        if self.mode == Mode.EXPORT:
-                            prog_bar.advance(40)
-                            stat_label.update("Retrieving file...")   
+                        # Select the web option for firmware update
+                        web_button = await detail_frame.wait_for_selector("#webFwUpdateBtn")
+                        await web_button.click()
+                        
+                        # handle firmware update
+                        await self.perform_firmware_update(page, stat_label, ip, id)   
+                        prog_bar.advance(30) 
+                        stat_label.update("DONE")          
+                        break           
 
-                            # download the file by clicking the "Export" button
-                            async with page.expect_download() as download:
-                                export_button = await detail_frame.wait_for_selector("#commBtn244")
-                                await export_button.click() 
-                            
-                            download_val = await download.value
-                            stat_label.update(f"Saving to {download_val.suggested_filename}")
-                            # save the file (by default it downloads on the current working folder)
-                            await download_val.save_as(download_val.suggested_filename)
-                        else: 
-                            prog_bar.advance(20)
-                            stat_label.update("Setting up...")
-                            
-                            # Select the import button
-                            import_button = await detail_frame.wait_for_selector("#commBtn272")
-                            await import_button.click()
-                            
-                            try:
-                                await self.perform_import(detail_frame, page, stat_label, ip, id)
-                            except Exception:
-                                raise # raise ANY fail with job for a retry in outer except block (TODO: Handle fail_by_import separately, like maybe no retry?)
-                    else:
-                        try:
+                else: # Export or import mode
+                    auth = BasicAuth(self.credentials[0], self.credentials[1])
+                    async with aiohttp.ClientSession(connector=aiohttp.TCPConnector(ssl=False)) as session:
+                        # Initialize
+                        await session.get(f'http://{ip}/web/initialize.htm')
+                        
+                        # Login and get session token
+                        async with session.get(f'http://{ip}/session/unityLogin.htm?devId=4', auth=auth) as resp:
+                            content = await resp.text()
+                            if resp.status == 200:
+                                Logger.log(f"Job #{id}: Login successful")               
+                                # Extract sessACT token from response to interact with the site
+                                token_match = re.search(r'sessACT=([A-Fa-f0-9]+)', content)
+                                
+                                if token_match:
+                                    sess_token = token_match.group(1)
+                                    Logger.log(f"Job #{id} - Session token: {sess_token}")                  
 
-                            # Check firmware version selected over the one read from current device (job)
-                            devstat_frame = page.frame("deviceStatus")
-                            devmodel = await devstat_frame.locator("#devName0").text_content()
-                            if "GXT5" in devmodel and "UNITY" in self.current_mode:
-                                raise ModeMismatch(f"{devmodel} cannot receive a UNITY firmware update.") 
-                            if "GXT4" in devmodel and "RDU101" in self.current_mode:
-                                raise ModeMismatch(f"{devmodel} cannot receive a UNITY firmware update.")
-
-                            # Select the firmware update folder                       
-                            firmware_folder = await navigation_frame.wait_for_selector("#report164380", timeout=10000)
-                            await firmware_folder.click()
-                            
-                            # Click the enable button 
-                            detail_frame = page.frame("detailArea")
-                            enable_button = await detail_frame.wait_for_selector("#enableComms")
-                            await enable_button.click() 
-
-                            # Select the web option for firmware update
-                            web_button = await detail_frame.wait_for_selector("#webFwUpdateBtn")
-                            await web_button.click()
-                            
-                            # handle firmware update
-                            await self.perform_firmware_update(page, stat_label, ip, id)
-                        except Exception:
-                            raise
-                    prog_bar.advance(30) 
-                    stat_label.update("DONE") 
-                    self.success_count += 1
-                    break # break off because if we get here, this job is complete!
+                                    # Click Communications button
+                                    async with session.get(f'http://{ip}/bezel.html?devId=4&sessACT={sess_token}', auth=auth) as comm_resp:
+                                        Logger.log(f"Job #{id} - Communications page: {comm_resp.status}") 
+                                    # Get child reports (expand Support folder)
+                                    async with session.get(f'http://{ip}/httpGetSet/httpGet.htm?devId=4&chldRprt=vel~rprt~chldList~16419~0&sessACT={sess_token}', auth=auth) as child_resp:
+                                        Logger.log(f"Job #{id} - Support folder: {child_resp.status}")
+                                    stat_label.update("Accessing config folder...")
+                                    # Navigate to Configuration Export/Import
+                                    async with session.get(f'http://{ip}/monitor.htm?devId=4&reportId=val~num~16440&mmIdx=val~num~0&sessACT={sess_token}', auth=auth) as config_resp:
+                                        Logger.log(f"Job #{id} - Config Export/Import: {config_resp.status}")                   
+                                    if self.mode == Mode.EXPORT:
+                                        await export_config_file(session, ip, sess_token, auth, stat_label, prog_bar)
+                                        stat_label.update("Done.")
+                                        prog_bar.advance(50)
+                                        break
+                                    else:
+                                        await import_config_file(session, ip, sess_token, auth, self.path_to_config, stat_label, prog_bar)
+                                        break
+                    self.success_count+=1
             except ModeMismatch as e:
                 Logger.log(f"Job #{id} [{ip}] failure : {e.get_err_msg()}")
                 prog_bar.update(total=100, progress=0)
@@ -298,61 +297,16 @@ class BatchScreen(Screen):
                 Logger.log(f"Job #{id} [{ip}] failure : {e}")
                 prog_bar.update(total=100, progress=0)
                 stat_label.update(f"General failure. Retry: {retry}/{max_retries}")  
-                await asyncio.sleep(5) # let the message show          
-            finally: # close the playwright elements before exiting the job
-                if context:
-                    await context.close()
-                if browser:
-                    await browser.close()
-                if playwright:
-                    await playwright.stop()
-        
-
-    # When user selects Import, then upload the import file and wait for reboot and completion
-    async def perform_import(self, detail_frame, page: Page, stat_label, ip, id, status_element=None):
-        
-        try:
-            detail_frame.locator('div[id="modal-dialog-cfgImport"][class*="active"]').wait_for(state="visible")
-            detail_frame.locator('form[name="ImportConfiguration"]').wait_for(state="visible")
-            
-            #  Click the Browse button and upload the file
-            async with page.expect_file_chooser() as fc_info:
-                await detail_frame.locator('form[name="ImportConfiguration"] input[value="Browse..."]').click()
-        
-            # Upload the file
-            stat_label.update("Uploading file...")
-            self.query_one(f"#{id}", ProgressBar).advance(10) 
-            file_chooser = await fc_info.value
-            await file_chooser.set_files(self.path_to_config)      
-            await detail_frame.evaluate('document.getElementById("ImportCfg").click()')
-
-            # wait for the import status element to be visible
-            status_element = detail_frame.locator('div#importCfgStatus')
-            await status_element.wait_for(state="visible", timeout=10000)
-
-            # Await a log message
-            stat_label.update("Importing configuration changes...")
-            await expect(status_element).to_contain_text("Importing configuration settings", timeout=10000, ignore_case=True)
-
-            # Wait for text to indicate a REBOOT (4 min timeout)
-            await expect(status_element).to_contain_text("reboot", timeout=240000, ignore_case=True)
-            stat_label.update("Rebooting...")
-            self.query_one(f"#{id}", ProgressBar).advance(10) 
-
-            #TODO Assuming that like any reboot, it takes you back to http://ip/web/initialize.htm?mode=reboot
-            await page.wait_for_url(f"http://{ip}/web/initialize.htm?mode=reboot", timeout=600000)
-
-        except Exception as e:
-            
-            content = await status_element.text_content()
-            if "failed" in content.lower():
-                stat_label.update("Import failed. CHK SITE IMPORT LOG.")
-                await asyncio.sleep(5)
-            Logger.log(f"An error has occured during import operation: {e}")
-            raise
+                await asyncio.sleep(5) # let the message show    
+            finally:
+                if self.mode == Mode.FIRMWARE:
+                    await context.close()   
+                    browser.close()
+                    await playwright.stop()   
 
     # Update the firmware on the unit by fetching imported user file
     async def perform_firmware_update(self, page: Page, stat_label, ip, id):
+
         try:
             # wait for the web url to show
             await page.wait_for_url(

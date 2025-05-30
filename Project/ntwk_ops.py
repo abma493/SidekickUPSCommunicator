@@ -33,7 +33,7 @@ class NetworkOptions:
             network_folder = await navigation_frame.wait_for_selector("#report163850", timeout=10000)
 
             await network_folder.click()
-            await self.page.wait_for_timeout(1000)  # Small delay after click
+            await self.page.wait_for_timeout(1000)  
             
 
             ipv4_folder = await navigation_frame.wait_for_selector("#report164130", timeout=10000)

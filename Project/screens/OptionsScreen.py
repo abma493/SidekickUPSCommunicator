@@ -98,21 +98,18 @@ class OptionsScreen(Screen):
                     self.current_mode = "Single"
                     status_label: Label = self.query_one("#status-label")
                     status_label.update(f"Mode: {self.current_mode}")                
-                self.app.push_screen(NotifMsgScreen())
                 
             # config file is optional. If None or incorrect, "Import" is disabled
             test_config_path = "\\".join([str(os.path.dirname(os.path.abspath(path_config))), path_config])
             if not os.path.exists(test_config_path):
                 Logger.log(f"Path to config file does not exist: {test_config_path}")
                 path_config = None # disable in case of bad path
-                self.app.push_screen(NotifMsgScreen())
 
             # firmware file is optional. If None or incorrect, "Firmware update" is disabled on both Single/Batch
             test_firmware_path = "\\".join([str(os.path.dirname(os.path.abspath(path_firmware))), path_firmware])
             if not os.path.exists(test_firmware_path):
                 Logger.log(f"Path to config file does not exist: {test_firmware_path}")
                 path_config = None # disable in case of bad path
-                self.app.push_screen(NotifMsgScreen())
 
             # set the global vars
             self.current_mode = mode
@@ -215,7 +212,7 @@ class RestartScreen(ModalScreen):
             Logger.log(f"Error restarting webcard: {e}")
 
 
-    # Handle the only button on-screen, "OK"
+    # Handle OK button
     def on_button_pressed(self, event: Button.Pressed) -> None:
         if event.button.id == "ok" and not event.button.disabled:
             self.app.pop_screen()

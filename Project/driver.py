@@ -65,7 +65,7 @@ class Driver():
                 for _ in range(self.threshold):
                     if self.quit:
                         break
-                    await asyncio.sleep(1)
+                    await asyncio.sleep(30)
                 
                 Logger.log(f'CHK_LOGOUT triggered by threshold of {self.threshold} seconds')
                 try:

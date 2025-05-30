@@ -43,7 +43,7 @@ The process typically takes 2-3 minutes."""
 Batch operations support:
 • Export configurations from multiple devices
 • Import configuration files to multiple devices
-• Firmware updates across device fleet
+• Perform firmware updates on a batch of devices
 
 Set up batch mode by pressing 'E - Edit' and selecting
 either 'Batch (RDU101)' or 'Batch (IS-UNITY)' mode."""
@@ -61,5 +61,19 @@ In batch mode, you must specify:
 • Path to batch file (list of IP addresses)
 • Path to config file (for import operations)
 • Path to firmware file (for firmware updates)"""
+            },
+            {
+                "title": "Gotchas and Pitfalls",
+                "content": """
+
+What is a "General Failure" ?
+• This is a "catchall" error for http request error besides 404.
+• This error mostly presents during 503 (Unavailable) codes from server. 
+• For more information, check the logs produced during operation.
+
+Aborting a batch job during operation:
+• Aborting does NOT guarantee request is reversed.
+• Once sent to the server, the web server will not halt at an abort call.
+• Abort will simply terminate the coroutine of this application."""
             }
         ]
