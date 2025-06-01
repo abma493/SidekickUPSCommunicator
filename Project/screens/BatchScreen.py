@@ -9,10 +9,10 @@ import asyncio
 import copy
 from .QuitScreen import QuitScreen
 from asyncio import Task
-from logger import Logger
 from enum import Enum, auto
 from import_cfg import import_config_file
 from export_cfg import export_config_file
+from session_init import http_session_init
 import aiohttp
 from aiohttp import BasicAuth
 import re
@@ -169,7 +169,7 @@ class BatchScreen(Screen):
             # update the main batch list by removing the items to be processed
             self.jobs = self.jobs[min(self.small_batch_lim, len(self.jobs)):]            
 
-            tasks = [asyncio.create_task(self.run_job(job["ip"], job["id"], self.credentials)) for job in small_jobs_l]
+            tasks = [asyncio.create_task(self.run_job(job["ip"], job["id"])) for job in small_jobs_l]
             
             # place them at class scope to be stopped on user request
             self.job_tasks = tasks
@@ -189,7 +189,7 @@ class BatchScreen(Screen):
 
     # Run a single job and perform the select operation (EXPORT/IMPORT/FIRMWARE_UPDATE)
     # TODO: This function needs to have subroutines bc its too long.
-    async def run_job(self, ip: str, id: str,  credentials: tuple, max_retries: int = 3):
+    async def run_job(self, ip: str, id: str, max_retries: int = 3):
         stat_label = self.query_one(f"#{id}-stat", Static)
         prog_bar = self.query_one(f"#{id}", ProgressBar)
         retry = 0
@@ -205,7 +205,7 @@ class BatchScreen(Screen):
                     url = f"http://{ip}/web/initialize.htm"
                     page = await context.new_page()
                     await page.goto(url)
-                    login_success = await login(page, credentials[0], credentials[1])
+                    login_success = await login(page, self.credentials[0], self.credentials[1])
                     if login_success:
                         # Navigate to the communications tab
                         prog_bar.advance(30)
@@ -251,43 +251,16 @@ class BatchScreen(Screen):
                         break           
 
                 else: # Export or import mode
-                    auth = BasicAuth(self.credentials[0], self.credentials[1])
-                    async with aiohttp.ClientSession(connector=aiohttp.TCPConnector(ssl=False)) as session:
-                        # Initialize
-                        await session.get(f'http://{ip}/web/initialize.htm')
-                        
-                        # Login and get session token
-                        async with session.get(f'http://{ip}/session/unityLogin.htm?devId=4', auth=auth) as resp:
-                            content = await resp.text()
-                            if resp.status == 200:
-                                Logger.log(f"Job #{id}: Login successful")               
-                                # Extract sessACT token from response to interact with the site
-                                token_match = re.search(r'sessACT=([A-Fa-f0-9]+)', content)
-                                
-                                if token_match:
-                                    sess_token = token_match.group(1)
-                                    Logger.log(f"Job #{id} - Session token: {sess_token}")                  
-
-                                    # Click Communications button
-                                    async with session.get(f'http://{ip}/bezel.html?devId=4&sessACT={sess_token}', auth=auth) as comm_resp:
-                                        Logger.log(f"Job #{id} - Communications page: {comm_resp.status}") 
-                                    # Get child reports (expand Support folder)
-                                    async with session.get(f'http://{ip}/httpGetSet/httpGet.htm?devId=4&chldRprt=vel~rprt~chldList~16419~0&sessACT={sess_token}', auth=auth) as child_resp:
-                                        Logger.log(f"Job #{id} - Support folder: {child_resp.status}")
-                                    stat_label.update("Accessing config folder...")
-                                    # Navigate to Configuration Export/Import
-                                    async with session.get(f'http://{ip}/monitor.htm?devId=4&reportId=val~num~16440&mmIdx=val~num~0&sessACT={sess_token}', auth=auth) as config_resp:
-                                        Logger.log(f"Job #{id} - Config Export/Import: {config_resp.status}")                   
-                                    if self.mode == Mode.EXPORT:
-                                        await export_config_file(session, ip, sess_token, auth, stat_label, prog_bar)
-                                        stat_label.update("Done.")
-                                        prog_bar.advance(50)
-                                        break
-                                    else:
-                                        await import_config_file(session, ip, sess_token, auth, self.path_to_config, stat_label, prog_bar)
-                                        break
-                    self.success_count+=1
-            except ModeMismatch as e:
+                    session_info = await http_session_init(self.credentials, ip, id)
+                    if self.mode == Mode.EXPORT:
+                        await export_config_file(session_info[0], ip, session_info[1], session_info[2], stat_label, prog_bar)
+                        stat_label.update("Done.")
+                        prog_bar.advance(50)
+                    else:
+                        await import_config_file(session_info[0], ip, session_info[1], session_info[2], self.path_to_config, stat_label, prog_bar)
+                self.success_count+=1
+                break 
+            except ModeMismatch as e: # Cancel job due to incompatibility
                 Logger.log(f"Job #{id} [{ip}] failure : {e.get_err_msg()}")
                 prog_bar.update(total=100, progress=0)
                 stat_label.update(e.get_err_msg()) 

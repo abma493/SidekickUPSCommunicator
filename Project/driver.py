@@ -1,11 +1,13 @@
-import asyncio
 from login import setup, login
 from ntwk_ops import NetworkOptions
+from session_init import http_session_init
 from syncprims import sem_driver, sem_UI, comm_queue, queue_cond
 from common.common_imports import *
 from enum import Enum, auto
 from logger import Logger
 from restart_card import restart_card
+from config_parser import cfg_dat_parser
+from export_cfg import export_config_file
 
 # ENUM for the user requests via UI to driver
 class Request(Enum):
@@ -35,7 +37,12 @@ class Driver():
         self.ip = ""
         self.quit: bool = False
         self.threshold = 90
-        self.chk_e: asyncio.Event = asyncio.Event()
+
+        # aiohttp vars
+        self.session = None
+        self.s_tok = None
+        self.auth = None
+        self.session_dat: dict[str, list[tuple[str, str]]] = None
 
     # Driver will defer connection and login (login.py)
     async def init(self):
@@ -44,7 +51,20 @@ class Driver():
         credentials: dict = comm_queue.get()
         sem_driver.release()
 
-        # critical part of init: connect and authenticate
+        # connect and authenticate (aiohttp)
+        creds_t: tuple = (credentials.get("username"), credentials.get("password"))
+        session_ip = credentials.get('ip') 
+        self.session, self.s_tok, self.auth = await http_session_init(creds_t, session_ip)
+        cfg_file = await export_config_file(self.session, session_ip, self.s_tok, self.auth)
+        Logger.log(f'cfg acquired by driver: {cfg_file}')
+        if cfg_file is not None:
+            self.session_dat = cfg_dat_parser(cfg_file)
+            for section_name, key_value_pairs in self.session_dat.items():
+                Logger.log(f"Section: {section_name}")
+                for key, value in key_value_pairs:
+                    Logger.log(f"  {key} = {value}")
+
+        #connect and authenticate (playwright)
         await self.establish_connect(credentials)
         await self.authenticate(credentials)    
         
@@ -65,7 +85,7 @@ class Driver():
                 for _ in range(self.threshold):
                     if self.quit:
                         break
-                    await asyncio.sleep(30)
+                    await asyncio.sleep(1)
                 
                 Logger.log(f'CHK_LOGOUT triggered by threshold of {self.threshold} seconds')
                 try:
@@ -197,7 +217,7 @@ class Driver():
             case Request.RESTART:
                 return await self.restart_and_login()
             case Request.GET_NTWK_OPS:
-                return await self.networkops.load_network_folder()
+                return self.session_dat['Network.IPv4']
             case Request.SET_IP:
                 Logger.log(f"Setting IP: {message}")
                 return await self.networkops.set_IP(message)

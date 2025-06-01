@@ -1,0 +1,9 @@
+Work Notes 5/30:
+
+> Optimization using aiohttp for BatchScreen. Created direct http request routines
+  for import/export that do not require DOM loading.
+
+> Created individual program files for import/export, which should facilitate all operations.
+  Testing pending for how to append multiple changes (opts 1-5)   
+
+> Some code cleanup, minor work on man-pages. 

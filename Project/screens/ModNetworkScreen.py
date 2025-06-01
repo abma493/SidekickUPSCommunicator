@@ -42,7 +42,11 @@ class ModNetworkScreen(ModalScreen):
     async def load_resources(self):
         try: 
 
-            dhcp, ip, subnet = await send_request("GET_NTWK_OPS_R")        
+            ntwk_dat = await send_request("GET_NTWK_OPS")
+            ntwk_dict = dict(ntwk_dat)        
+            ip = ntwk_dict['Static IP Address']
+            subnet = ntwk_dict['Subnet Mask']
+            dhcp = "ON" if int(ntwk_dict['IPv4 Protocol']) == 1 else "OFF"
             Logger.log(f"received: [IP: {ip}], [subnet: {subnet}], [dhcp: {dhcp}]")
     
             self.current_ip.update(f"Current IP: {ip}" if ip else "Current IP: ERROR")
