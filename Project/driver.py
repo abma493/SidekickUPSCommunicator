@@ -114,7 +114,6 @@ class Driver():
             web = f'http://{credentials.get("ip")}/web/initialize.htm'
             
             self.page, self.browser, self.playwright = await setup(web)
-            self.networkops.page = self.page
 
             if self.page is not None and self.browser is not None and self.playwright is not None:
                 break
