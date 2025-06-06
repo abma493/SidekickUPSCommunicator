@@ -5,9 +5,17 @@ class NotifMsgScreen(ModalScreen):
     
     CSS_PATH = "../assets/notifmsg_screen.css"
     
+    def __init__(self, message):
+        super().__init__()
+        self.message = message
+
+
+    def on_mount(self) -> None:
+        self.query_one("#message").update(self.message)
+
     def compose(self) -> ComposeResult:
         yield Grid(
-            Label("Invalid Configuration file selected.", id="message"),
+            Label("", id="message"),
             Button("OK", variant="primary", id="ok"),
             id="dialog",
         )

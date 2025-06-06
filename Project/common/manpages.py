@@ -1,6 +1,6 @@
 help_pages = [
             {
-                "title": "Vertiv Communicator for UPS devices v.1.0",
+                "title": "Vertiv Communicator for UPS devices v.2.1",
                 "content": """This tool allows you to configure and manage Vertiv GXT4/GXT5
 
 Main features:

@@ -5,6 +5,7 @@ from .ModNetworkScreen import ModNetworkScreen
 from .HelpScreen import HelpScreen
 from .EditScreen import EditScreen
 from .NotifMsgScreen import NotifMsgScreen
+from .RetrieveDiagScreen import RetrieveDiagnosticsScreen
 from logger import Logger
 from .BatchScreen import BatchScreen
 import asyncio
@@ -19,8 +20,9 @@ class OptionsScreen(Screen):
         ("q", "quit_app"),
         ("e", "edit_settings"),
         ("1", "mod_network_settings"),
-        ("6", "restart_card"),
-        ("7", "batch_operations"),
+        ("2", "get_diagnostics_file"),
+        ("4", "restart_card"),
+        ("5", "batch_operations"),
     ]
 
     def __init__(self):
@@ -39,25 +41,21 @@ class OptionsScreen(Screen):
         
         with Container(id="list-container"):
             yield OptionList(
-                "1. Modify IP",
+                "1. Modify Network Settings",
                 Option("", disabled=True),
-                "2. Get Diagnostics file",
+                "2. Get Diagnostics file(s)",
                 Option("", disabled=True),
-                "3. Update NTP settings",
+                "3. Push firmware update",
                 Option("", disabled=True),
-                "4. Update SMTP Relay settings",
+                "4. Restart Web Card",
                 Option("", disabled=True),
-                "5. Push firmware update",
-                Option("", disabled=True),
-                "6. Restart Web Card",
-                Option("", disabled=True),
-                "7. Push Batch Configuration File",
+                "5. Batch Operations (Import/Export/Firmware)",
                 id="opts-list"
             )       
         
         with Horizontal(id="options-container"):
-                yield Button("Q - Quit", id="quit-button")
-                yield Button("E - Edit", id="edit-button")
+                yield Button("<Q - Quit>", id="quit-button")
+                yield Button("<E - Edit>", id="edit-button")
                 yield Label(f"Mode: Single (Default)", id="status-label")
                 yield Label(f"", id="info-label")
                 yield Button("<?>", id="help-button")
@@ -73,6 +71,10 @@ class OptionsScreen(Screen):
     # yield the restart card option
     def action_restart_card(self) -> None:
         self.app.push_screen(RestartScreen())
+
+    async def action_get_diagnostics_file(self) -> None:
+        batch_mode = True if "Batch" in self.current_mode else False
+        self.app.push_screen(RetrieveDiagnosticsScreen(batch_mode, self.path_to_batch))
     
     @on(Button.Pressed, "#help-button")
     def on_help_pressed(self) -> None:
@@ -82,7 +84,7 @@ class OptionsScreen(Screen):
     def action_edit_settings(self) -> None:
         
         #callback function for EditScreen dismissal to reap values
-        def check_edit(result: tuple) -> None:    
+        async def check_edit(result: tuple) -> None:    
             mode: str = result[0]
             path_batch: str = result[1]
             path_config: str = result[2]
@@ -116,9 +118,7 @@ class OptionsScreen(Screen):
             self.path_to_config = path_config
             self.path_to_batch = path_batch
             self.path_to_firmware = path_firmware
-
             status_label: Label = self.query_one("#status-label")
-            status_label.update(f"Mode: {self.current_mode}")
 
         self.app.push_screen(EditScreen(), check_edit)
     
@@ -143,12 +143,10 @@ class OptionsScreen(Screen):
 
         option_actions = {
             0: self.action_mod_network_settings,
-            2: lambda: None,
+            2: lambda: self.action_get_diagnostics_file,
             4: lambda: None,
-            6: lambda: None,
-            8: lambda: None,
-            10: self.action_restart_card,
-            12: self.action_batch_operations,
+            6: self.action_restart_card,
+            8: self.action_batch_operations,
         }
 
         if index in option_actions:

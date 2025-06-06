@@ -1,0 +1,34 @@
+/* retrieve diagnostics screen css */
+
+RetrieveDiagnosticsScreen {
+    align: center middle;
+}
+
+#prompt {
+    padding: 0 1;
+    width: 60;
+    height:11;
+    border: thick white;
+    background: darkblue;
+}
+
+#message {
+    width: 100%;
+    content-align: center middle;
+}
+
+.buttons {
+    content-align: center middle;
+    width: 100%;
+}
+
+.buttons > * {
+    margin-top: 1;
+    width: 100%;
+}
+
+#ok-button {
+    margin-top: 3;
+    width: 100%;
+    align: center middle;    
+}

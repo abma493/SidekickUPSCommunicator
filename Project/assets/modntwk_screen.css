@@ -85,3 +85,8 @@ ToggleButton {
 #current-network-settings > * {
     width: auto;
 }
+
+
+#apply-button, #set-button {
+    border: white;
+}

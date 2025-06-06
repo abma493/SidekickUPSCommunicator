@@ -31,10 +31,4 @@ def cfg_dat_parser(file_path: str) -> dict[str, list[tuple[str, str]]]:
     return { section: list(config[section].items()) for section in sections if section in config }
 
 
-result = cfg_dat_parser('config_00-09-f5-31-6a-f4_2025-06-01_23-16-30.txt')
-
-for section_name, key_value_pairs in result.items():
-    print(f"Section: {section_name}")
-    for key, value in key_value_pairs:
-        print(f"  {key} = {value}")
-    print()  # Empty line between sections
+# result = cfg_dat_parser('config_00-09-f5-31-6a-f4_2025-06-01_23-16-30.txt')

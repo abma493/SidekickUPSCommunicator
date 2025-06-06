@@ -8,7 +8,7 @@ from playwright.async_api import Page
 async def setup(web: str):
     try:
         playwright = await async_playwright().start()
-        browser = await playwright.firefox.launch(headless=False)
+        browser = await playwright.firefox.launch(headless=True)
         context = await browser.new_context() 
         page = await context.new_page()
         try:

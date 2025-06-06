@@ -1,25 +1,28 @@
 from login import setup, login
-from ntwk_ops import NetworkOptions
-from session_init import http_session_init
 from syncprims import sem_driver, sem_UI, comm_queue, queue_cond
 from common.common_imports import *
 from enum import Enum, auto
 from logger import Logger
+import glob
 from restart_card import restart_card
+from http_session import http_session
 from config_parser import cfg_dat_parser
-from export_cfg import export_config_file
+
+ENODAT = 0
+EDATWR = -1
+EIMCFG = -2
+SUCCESS = 1
 
 # ENUM for the user requests via UI to driver
 class Request(Enum):
-    QUIT = auto()
-    RESTART = auto()
-    GET_NTWK_OPS = auto()
-    SET_IP = auto()
-    SET_SUBNET = auto()
-    SET_DHCP = auto()
-    SET_STATIC = auto()
-    REQ_CREDS = auto()
-    CHG_THRESHOLD = auto()
+    QUIT            = auto()
+    RESTART         = auto()
+    GET_NTWK_OPS    = auto()
+    PUSH_CHANGES    = auto()
+    HOLD_CHANGES    = auto()
+    GET_DIAGNOSTICS = auto()
+    REQ_CREDS       = auto()
+    SET_THRESHOLD   = auto()
     
 
 # The Driver class serves as the liason between Textual's UI implementations
@@ -31,18 +34,14 @@ class Driver():
         self.page = None
         self.browser = None
         self.playwright = None
-        self.networkops = NetworkOptions()
         self.username = ""
         self.password = ""
         self.ip = ""
         self.quit: bool = False
         self.threshold = 90
-
-        # aiohttp vars
-        self.session = None
-        self.s_tok = None
-        self.auth = None
-        self.session_dat: dict[str, list[tuple[str, str]]] = None
+        self.path_to_batch_file = ""
+        self.session_dat: dict[str, list[tuple[str, str]]] = {}
+        self.temp_dat: dict[str, list[tuple[str, str]]] = {}
 
     # Driver will defer connection and login (login.py)
     async def init(self):
@@ -51,25 +50,17 @@ class Driver():
         credentials: dict = comm_queue.get()
         sem_driver.release()
 
-        # connect and authenticate (aiohttp)
-        creds_t: tuple = (credentials.get("username"), credentials.get("password"))
-        session_ip = credentials.get('ip') 
-        self.session, self.s_tok, self.auth = await http_session_init(creds_t, session_ip)
-        cfg_file = await export_config_file(self.session, session_ip, self.s_tok, self.auth)
-        Logger.log(f'cfg acquired by driver: {cfg_file}')
-        if cfg_file is not None:
-            self.session_dat = cfg_dat_parser(cfg_file)
-            for section_name, key_value_pairs in self.session_dat.items():
-                Logger.log(f"Section: {section_name}")
-                for key, value in key_value_pairs:
-                    Logger.log(f"  {key} = {value}")
-
         #connect and authenticate (playwright)
         await self.establish_connect(credentials)
         await self.authenticate(credentials)    
-        
         # load the resources to provide configuration options
         await self.load_comms_tab()
+        try:
+            cfg_file = await http_session(self.ip, self.username, self.password)
+        except Exception as e:
+            Logger.log(f"General failure on http_session: {e}")
+        if cfg_file is not None:
+            self.session_dat = cfg_dat_parser(cfg_file)
             
     # Periodically poll every (n) seconds the playwright page object to see if
     # user has been logged out due to inactivity. If so, re-login the user
@@ -79,9 +70,7 @@ class Driver():
         raise_f:bool = False
 
         while not self.quit:
-
             try:
-
                 for _ in range(self.threshold):
                     if self.quit:
                         break
@@ -156,7 +145,7 @@ class Driver():
             
             response = {
                 'login': login_success,
-                'message': "Login successful." if login_success else "INFO: Login failed due to bad credentials. Try again."
+                'message': "Login successful." if login_success else "INFO: Login failed due to\n bad credentials. Try again."
             }
 
             comm_queue.put(response)
@@ -175,25 +164,34 @@ class Driver():
     # listen for requests from the UI thread. (GET/SET)
     # GET : for UI component at load time
     # SET : user requests by UI interaction
-    async def listen(self):
-        
+    async def listen(self):   
         Logger.log("Driver listener started OK.")
+        
         while not self.quit:
-            
-            async with queue_cond:
+            with queue_cond:
 
                 # use a Condition lock to wait until a request is present
                 while comm_queue.empty(): 
-                    await queue_cond.wait()
+                    queue_cond.wait()
 
                 response: dict = comm_queue.get()       # Retrieve UI request
-                action: str = response.get("request")   # retrieve the request str
+
+                # A race condition occurs when the driver's listen() retrieves the
+                # response it put in the queue, since it got to the queue before the UI
+                if not response.get('is_request', False):
+                    Logger.log("Race condition detected: Driver attempted to read its own response.")
+                    comm_queue.put(response) # put the response back
+                    queue_cond.wait() # wait for the next notify()
+                    continue
+
+                action: str = response.get("request")   # retrieve the request
                 message = response.get("message")       # retrieve the contained msg (if applicable)
                 
                 # driver processes request accordingly
                 msg_reply = await self.parse_request(action, message) 
                 
                 response['message'] = msg_reply # change the message with reply
+                response['is_request'] = False # A response is going back to the queue
                 
                 # Put back response
                 comm_queue.put(response)
@@ -201,10 +199,12 @@ class Driver():
                 sem_UI.release() # UI ready to parse response
                 Logger.log(f"sem_UI: {sem_UI._value} triggered by {action} [{msg_reply}]")
 
+
     # Takes in a request string and converts it to a Request enum, proceeding to match
     # the enum value with a specific web request. Matched case will defer control to a 
     # function to perform the request and return a result if necessary
     async def parse_request(self, req: str, message):
+        
         if req.upper() not in Request.__members__:
             Logger.log("Error parsing request")
             return None # Request failed
@@ -218,35 +218,101 @@ class Driver():
                 return await self.restart_and_login()
             case Request.GET_NTWK_OPS:
                 return self.session_dat['Network.IPv4']
-            case Request.SET_IP:
-                Logger.log(f"Setting IP: {message}")
-                return await self.networkops.set_IP(message)
-            case Request.SET_SUBNET:
-                Logger.log(f"Setting subnet: {message}")
-                return await self.networkops.set_subnet(message)
-            case Request.SET_DHCP:
-                return await self.networkops.enable_dhcp()
-            case Request.SET_STATIC:
-                return await self.networkops.enable_static()
+            case Request.PUSH_CHANGES:
+                return await self.push_changes()
+            case Request.HOLD_CHANGES:
+                return self.hold_changes(message)
+            case Request.GET_DIAGNOSTICS:
+                return await self.get_diagnostics(message)
             case Request.REQ_CREDS:
                 return self.send_creds()
-            case Request.CHG_THRESHOLD:
-                self.threshold = int(message)
-                return True
+            case Request.SET_THRESHOLD:
+                return self.set_threshold(message)
             case _:
-                Logger.log("NO request parsed")
                 pass
         return None 
-    
-    # New method to clean up Playwright resources
-    async def cleanup(self):
-        Logger.log("CLEANUP on exit.")
-        self.quit = True
 
+    # if the user "SETs" changes, they are storing them locally 
+    # on the app session, and such changes are "held" by
+    # the driver until an explicit "Apply" is selected by user.
+    def hold_changes(self, changes: dict[str, list[tuple[str, str]]]):
+
+        if changes is None or not isinstance(changes, dict):
+            Logger.log(f"Passed arg in hold_changes is type: {type(changes).__name__}")
+            return False
+  
+        for section, tup_l in changes.items():
+            if section in self.temp_dat: # append to existing section
+                self.temp_dat[section].extend(tup_l)
+            else: # create a new section
+                self.temp_dat[section] = tup_l.copy()
+        self.test_dat(self.temp_dat, "temp_dat")
+        return True
+
+    # if the user explicitly asks to Apply a change during an option
+    # or main menu, or if the app asks the user to push changes before 
+    # quitting, such func will first update session_dat, then write the
+    # contents of it to a file, which will then be imported to the UPS
+    async def push_changes(self):
+        
+        if not self.temp_dat:
+            Logger.log("PUSH_CHANGES: No changes to push")
+            return ENODAT
+        
+        for section, tup_l in self.temp_dat.items():
+            Logger.log(f'PUSH_CHANGES: Adding {section} content')
+            if section not in self.session_dat:
+                Logger.log("PUSH CHANGES: Failure during internal data structure writing operation.")
+                return EDATWR
+            updates = dict(tup_l)
+            # if key (k) does not exist in updates, take default value (v), that is, the
+            # original one in the session_dat dict
+            self.session_dat[section] = [
+                (k, updates.get(k, v)) for k, v in self.session_dat[section]
+            ]
+        try:
+            # write the session_dat to a file
+            with open("config.txt", 'w', encoding='utf-8') as f:
+                for section, k_v_pairs in self.session_dat.items():
+                    f.write(f'[{section}]\n')
+                    for k, v in k_v_pairs:
+                        f.write(f"{k}: {v}\n")
+                    f.write("\n")
+            # call import operation on device, and do a restart
+            success = await http_session(self.ip, self.username, self.password, 1, "config.txt")
+            if success:
+                self.temp_dat.clear() # clear the temp storage as changes are saved
+        except Exception as e:
+            Logger.log(f'Error at push_changes: {e}')
+
+        return SUCCESS if success else EIMCFG
+        
+
+    # Function to cleanup driver resources
+    async def cleanup(self, quit=True):
+        Logger.log("CLEANUP on exit.")
+        if quit:
+            self.quit = True
         if self.browser:
             await self.browser.close()
         if self.playwright:
             await self.playwright.stop()
+
+        for f in glob.glob("config*.txt"):
+            try:
+                os.remove(f)
+            except FileNotFoundError:
+                pass
+    
+    # In the event that the playwright session is abnormally closed,
+    # this function will re-establish the session.
+    async def re_establish_connection(self):
+        await self.cleanup(quit=False) # make sure all is closed before re-establishing connection
+        credentials = {'ip': self.ip, 'username': self.username, 'password': self.password}
+        await self.establish_connect(credentials)
+        await self.authenticate(credentials)
+        await self.load_comms_tab()
+
 
     # Requests a restart from Playwright API to Vertiv site
     # Upon receiving a successful reboot attempt, it will log back in with
@@ -254,6 +320,13 @@ class Driver():
     async def restart_and_login(self):  
 
         try:
+            if self.page is None or self.page.is_closed() or self.browser is None or not self.browser.is_connected():
+                try:
+                    await self.re_establish_connection()
+                except Exception as e:
+                    Logger.log(f"Critical failure on restart: {e}") 
+                    return False
+
             restart_success = await restart_card(self.page, self.ip)
             if restart_success:
                 Logger.log("restart complete. Logging back in.")
@@ -275,8 +348,26 @@ class Driver():
                 Logger.log("Restart failed.")
                 return False
         except Exception as e:
-            Logger.log(f"Error during restart: {str(e)}")
+            Logger.log(f"Failure on restart: {str(e)}")
             return False
+
+    # retrieve the diagnostics file from the device's web server
+    async def get_diagnostics(self, ip: str):
+        ip = self.ip if ip is None else ip
+        try: 
+            success = await http_session(ip, self.username, self.password, Operation.DIAGNOSTICS)
+        except Exception as e:
+            Logger.log(f"GET_DIAGNOSTICS: Failure during operation - {e}")
+        
+        assert isinstance(success, bool)
+        return success
+
+    # set the driver's logout check timer threshold
+    def set_threshold(self, time_n):
+        if not isinstance(time_n, int):
+            return False
+        self.threshold = time_n
+        return True
 
     # Load the communications tab resources from the web.
     # This tab is where all operations derive action from.
@@ -293,8 +384,21 @@ class Driver():
         except Exception as e:
             Logger.log(f"Error navigating to communications tab: {e}")
 
+    # For debugging purposes only 
+    # Will output the contents of a data structure
+    # type used internally by the driver for changes made by user for device
+    def test_dat(self, dat: dict[str, list[tuple[str, str]]], name: str):
+
+        if dat is None or not isinstance(dat, dict):
+            Logger.log(f"Passed arg in hold_changes is type: {type(dat).__name__}")
+            return
+
+        Logger.log(f"DEBUG: Outputting internal data structure contents [{name}]")
+        for section_name, key_value_pairs in dat.items():
+            Logger.log(f"Section: {section_name}")
+            for key, value in key_value_pairs:
+                Logger.log(f"  {key} = {value}")
+
     # Get the user credentials from the driver class
     def send_creds(self):
         return (self.username, self.password)
-
-

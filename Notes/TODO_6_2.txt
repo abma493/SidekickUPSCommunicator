@@ -1,0 +1,14 @@
+Continue redo of Option 1
+
+Now that it fetches its data from the config file, user input should bypass playwright and simply edit
+a field value in the respective tuple. Such tuple is sent back to the driver with the master curated copy
+of the config file. The driver will use the passed tuple to identify the key and pass in the modified value
+to the dictionary of config entries. 
+
+The user will have the option to "Apply" the changes in the Option 1 screen, otherwise, the user may 
+"Apply all changes" in Main menu screen, or if they choose to quit the app, it will prompt the user with a dialog
+that will read: "You have # unsaved changes. Do you wish to apply them?"
+
+If the user selects "yes", the aiohttp will import a new file with the selected changes. Then, 
+playwright will communicate with the web server to oversee a card restart.
+NOTE: Not all changes require a restart.

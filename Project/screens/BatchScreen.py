@@ -1,22 +1,15 @@
 from common.common_term import *
-from playwright.async_api import async_playwright, expect, Page, BrowserContext, TimeoutError as PlaywrightTimeoutError
-from common.common_imports import default_timeout
+from playwright.async_api import async_playwright, expect, Page
+from common.common_imports import default_timeout, parse_to_list, Operation
 from textual.widgets import Select
 from syncprims import send_request
 from logger import Logger
 from login import login
+from asyncio import Task
+from .QuitScreen import QuitScreen
+from http_session import http_session
 import asyncio
 import copy
-from .QuitScreen import QuitScreen
-from asyncio import Task
-from enum import Enum, auto
-from import_cfg import import_config_file
-from export_cfg import export_config_file
-from session_init import http_session_init
-import aiohttp
-from aiohttp import BasicAuth
-import re
-import asyncio
 
 class ModeMismatch(Exception):
     def __init__(self, message):
@@ -25,17 +18,12 @@ class ModeMismatch(Exception):
     def get_err_msg(self) -> str:
         return self.message
 
-class Mode(Enum):
-    EXPORT = auto()
-    IMPORT = auto()
-    FIRMWARE = auto()
-
 class BatchScreen(Screen):
     
     CSS_PATH = "../assets/batchops.css"
 
     def __init__(self, path_to_batch: str, path_to_config: str, path_to_firmware: str, current_mode, credentials):
-        self.jobs = self.parse_to_list(path_to_batch)           # dynamic list that will have elements removed upon completion
+        self.jobs = parse_to_list(path_to_batch)                # dynamic list that will have elements removed upon completion
         self.jobs_c = copy.deepcopy(self.jobs)                  # TODO temporary solution to the "abort all" func
         self.jobs_len = len(self.jobs)                          # holds original len of jobs for final stat
         self.path_to_config = path_to_config                    # config file path (verified to exist)
@@ -44,30 +32,10 @@ class BatchScreen(Screen):
         self.current_mode = current_mode                        # Determines if batch firmware updates are for RDU101/UNITY
         self.credentials = credentials                          # Cached user creds passed here for job completion
         self.running = False                                    # used by "abort all"
-        self.mode = Mode.EXPORT                                 # determines mode (EXPORT by default, IMPORT or FIRMWARE UP)
+        self.mode = Operation.EXPORT                            # determines mode (EXPORT by default, IMPORT or FIRMWARE UP)
         self.success_count = 0                                  # num of jobs completed successfully
         self.small_batch_lim = 5                                # used to limit range of active jobs in large batch files
         super().__init__()
-
-    # parse the IPs in the batch file to a list of jobs 
-    # A job entry in the list is comprised of an IP and an ID
-    # IP is used to navigate to webcard website
-    # ID is used to provide a selector identifier to the widgets on screen
-    def parse_to_list(self, path_to_batch: str) -> list:
-        jobs = []
-
-        with open(path_to_batch, 'r') as file:
-
-            lines = [line.strip() for line in file.readlines() if line.strip()]
-            for i, ip in enumerate(lines, 1):
-                entry = {
-                    "ip": ip,
-                    "id": f'job-entry{i}'
-                }
-                Logger.log(f'appending {entry["ip"]}/{entry["id"]}')
-                jobs.append(entry)
-
-        return jobs
 
     async def on_mount(self):
         chg_t: bool = await send_request("CHG_THRESHOLD", 15)
@@ -145,8 +113,8 @@ class BatchScreen(Screen):
     @on(Select.Changed, "#mode-select")
     def on_mode_changed(self, event: Select.Changed) -> None:
         
-        mode: Mode = Mode.EXPORT if event.value == "Export" else Mode.IMPORT
-        mode = Mode.FIRMWARE if event.value == "Firmware Update" else mode
+        mode: Operation = Operation.EXPORT if event.value == "Export" else Operation.IMPORT
+        mode = Operation.FIRMWARE if event.value == "Firmware Update" else mode
 
         self.mode = mode
 
@@ -193,12 +161,12 @@ class BatchScreen(Screen):
         stat_label = self.query_one(f"#{id}-stat", Static)
         prog_bar = self.query_one(f"#{id}", ProgressBar)
         retry = 0
-
+        
         while retry < max_retries:
             try:
                 stat_label.update("Connecting...")
                 
-                if self.mode == Mode.FIRMWARE:
+                if self.mode == Operation.FIRMWARE:
                     playwright = await async_playwright().start()
                     browser = await playwright.firefox.launch(headless=True)
                     context = await browser.new_context() 
@@ -251,13 +219,11 @@ class BatchScreen(Screen):
                         break           
 
                 else: # Export or import mode
-                    session_info = await http_session_init(self.credentials, ip, id)
-                    if self.mode == Mode.EXPORT:
-                        await export_config_file(session_info[0], ip, session_info[1], session_info[2], stat_label, prog_bar)
-                        stat_label.update("Done.")
-                        prog_bar.advance(50)
-                    else:
-                        await import_config_file(session_info[0], ip, session_info[1], session_info[2], self.path_to_config, stat_label, prog_bar)
+
+                    if self.mode == Operation.EXPORT:
+                        await http_session(ip, self.credentials[0], self.credentials[1], 0, None, stat_label, prog_bar)
+                    elif self.mode == Operation.IMPORT:
+                        await http_session(ip, self.credentials[0], self.credentials[1], 1, self.path_to_config, stat_label, prog_bar)
                 self.success_count+=1
                 break 
             except ModeMismatch as e: # Cancel job due to incompatibility
@@ -272,7 +238,7 @@ class BatchScreen(Screen):
                 stat_label.update(f"General failure. Retry: {retry}/{max_retries}")  
                 await asyncio.sleep(5) # let the message show    
             finally:
-                if self.mode == Mode.FIRMWARE:
+                if self.mode == Operation.FIRMWARE:
                     await context.close()   
                     browser.close()
                     await playwright.stop()   
@@ -323,10 +289,5 @@ class BatchScreen(Screen):
             await page.locator("#GoHomeB").click(timeout=600000)
 
         except Exception as e:
-            
-            # multiple errors may occur. for instance,
-            # Error: 503 Service Unavailable 
-            #    > accompanied by a Message field: (No filename, etc.)
-            # Unathorized <h1>, look for single <p> elem to display
             Logger.log(f"An error has occured during firmware update: {e}")
             raise

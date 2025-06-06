@@ -21,7 +21,16 @@ PushChangesScreen {
 }
 
 .buttons {
-    width: auto;
+    width: 100%;
+}
+
+#yes, #no {
+    width: 50%;
+}
+
+#ok-button {
+    width: 100%;
+    align: center middle;
 }
 
 Grid {
