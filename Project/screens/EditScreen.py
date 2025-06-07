@@ -9,7 +9,7 @@ class EditScreen(ModalScreen):
     
     CSS_PATH = "../assets/editscreen.css"
 
-    def __init__(self):
+    def __init__(self): 
         super().__init__()
         self.batch_mode = False
         self.firmware_label = "IS-UNITY"

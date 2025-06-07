@@ -46,13 +46,17 @@ class Driver():
     # Driver will defer connection and login (login.py)
     async def init(self):
 
-        sem_driver.acquire()
+        await sem_driver.acquire() # 0
         credentials: dict = comm_queue.get()
-        sem_driver.release()
 
         #connect and authenticate (playwright)
-        await self.establish_connect(credentials)
-        await self.authenticate(credentials)    
+        success = await self.establish_connect(credentials)
+        if not success:
+            return # sem_UI is released in establish_connect if connection fails
+        success = await self.authenticate(credentials)  
+        if not success:
+            return # sem_UI is released in authenticate if login fails
+          
         # load the resources to provide configuration options
         await self.load_comms_tab()
         try:
@@ -102,63 +106,47 @@ class Driver():
     # used (manually) to verify a valid Vertiv account
     async def establish_connect(self, credentials: dict):
         # Setup the browser connection
+
+        Logger.log(f"Attempting to establish a connection with {credentials.get('ip')}")
+        web = f'http://{credentials.get("ip")}/web/initialize.htm'
         
-        while True: # VERIFY CONNECTION ESTABLISHED
+        self.page, self.browser, self.playwright = await setup(web)
 
-            sem_driver.acquire() # 1 -> 0
-
-            if not comm_queue.empty(): # It must be a retry
-                credentials: dict = comm_queue.get()
-
-            Logger.log(f"Attempting to establish a connection with {credentials.get('ip')}")
-            web = f'http://{credentials.get("ip")}/web/initialize.htm'
-            
-            self.page, self.browser, self.playwright = await setup(web)
-
-            if self.page is not None and self.browser is not None and self.playwright is not None:
-                break
-            
+        if self.page is None or self.browser is None or self.playwright is None:
             response = {
                 'message': "Reaching host(s) failed.\nTry another IP or verify the one you entered."
             }
             Logger.log("Session unreachable.\n")
             comm_queue.put(response)
             sem_UI.release()
-            # sem_driver is 0 so it will wait
-
-        sem_driver.release()
+            return False # failed to connect
+        
+        return True # connection established successfully
 
     # Handles the authentication 
     async def authenticate(self, credentials):
         
-        while True: # VERIFY LOGIN SUCCESS
-            sem_driver.acquire() # 1->0
+        Logger.log(f"Credentials -> [username: {credentials.get('username')} password: {credentials.get('password')} IP: {credentials.get('ip')}]")
+        
+        # Call the async login function
+        login_success: bool = await login(self.page, credentials.get("username"), credentials.get("password"))
+        
+        response = {
+            'login': login_success,
+            'message': "Login successful." if login_success else "INFO: Login failed due to\n bad credentials. Try again."
+        }
 
-            if not comm_queue.empty(): # then it must be a retry
-                credentials: dict = comm_queue.get()
-
-            Logger.log(f"Credentials -> [username: {credentials.get('username')} password: {credentials.get('password')} IP: {credentials.get('ip')}]")
-            
-            # Call the async login function
-            login_success: bool = await login(self.page, credentials.get("username"), credentials.get("password"))
-            
-            response = {
-                'login': login_success,
-                'message': "Login successful." if login_success else "INFO: Login failed due to\n bad credentials. Try again."
-            }
-
-            comm_queue.put(response)
-            sem_UI.release() # UI retrieves response (becomes 1 for UI to play around with)
-            
-            if login_success:
-                self.username = credentials.get("username")
-                self.password = credentials.get("password")
-                self.ip = credentials.get("ip")
-                break
-
+        comm_queue.put(response)
+        sem_UI.release() # UI retrieves response (becomes 1 for UI to play around with)
+        
+        if login_success:
+            self.username = credentials.get("username")
+            self.password = credentials.get("password")
+            self.ip = credentials.get("ip")
+            return login_success # login successful
+        else:
             Logger.log("Login failed.\n")
-
-        sem_driver.acquire() # should be 1 THEN decrement at successful login
+            return False # login failed
 
     # listen for requests from the UI thread. (GET/SET)
     # GET : for UI component at load time
@@ -167,11 +155,11 @@ class Driver():
         Logger.log("Driver listener started OK.")
         
         while not self.quit:
-            with queue_cond:
+            async with queue_cond:
 
                 # use a Condition lock to wait until a request is present
                 while comm_queue.empty(): 
-                    queue_cond.wait()
+                    await queue_cond.wait()
 
                 response: dict = comm_queue.get()       # Retrieve UI request
 
@@ -180,7 +168,7 @@ class Driver():
                 if not response.get('is_request', False):
                     Logger.log("Race condition detected: Driver attempted to read its own response.")
                     comm_queue.put(response) # put the response back
-                    queue_cond.wait() # wait for the next notify()
+                    await queue_cond.wait() # wait for the next notify()
                     continue
 
                 action: str = response.get("request")   # retrieve the request
@@ -278,7 +266,7 @@ class Driver():
                         f.write(f"{k}: {v}\n")
                     f.write("\n")
             # call import operation on device, and do a restart
-            success = await http_session(self.ip, self.username, self.password, 1, "config.txt")
+            success = await http_session(self.ip, self.username, self.password, Operation.IMPORT, "config.txt")
             if success:
                 self.temp_dat.clear() # clear the temp storage as changes are saved
         except Exception as e:
@@ -290,8 +278,6 @@ class Driver():
     # Function to cleanup driver resources
     async def cleanup(self, quit=True):
         Logger.log("CLEANUP on exit.")
-        if quit:
-            self.quit = True
         if self.browser:
             await self.browser.close()
         if self.playwright:
@@ -302,6 +288,8 @@ class Driver():
                 os.remove(f)
             except FileNotFoundError:
                 pass
+        if quit:
+            self.quit = True
     
     # In the event that the playwright session is abnormally closed,
     # this function will re-establish the session.

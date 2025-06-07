@@ -1,0 +1,45 @@
+6/6 Update:
+
+A major update to this application has finally arrived, addressing some critical design flaws and a subtle fatal bug
+that came about with the redesign of this app.
+
+Firstly, all sync primitives have been imported from asyncio rather than from threading. 
+A clear understanding of the event loop running in textual conflicting with that of the main() in the application led to a 
+removal of OS threads and change of all sync primitives from the threading lib to asyncio lib.
+All instances of OS threading, including the ui_thread on main() have been removed in favor of full asyncio features. 
+Moreover, main.py has been simplified, with driver instantiation and loading moved to terminal.py where the textual App is defined. 
+
+Driver.py was also simplified, no longer employing while loops when establishing connections or authenticating, as 
+these operations are done once per selection of "ok" by user on the BaseScreen(), which is launched by the main textual
+App. 
+
+Finally, the major update of this application is its fusion with aiohttp for interacting with the UPSs web server via
+http requests. Not only is it much faster, but its operations to request login/import/export/diagnostics 
+from the devices' web server are much more future-proof, faster, and modular. Relying solely on playwright's manipulation
+of the web server's DOM would cause concerning dependency on the DOM for if it were to change in the future it could
+potentially make an update more tedious. Moreover, having to render the DOM and the web's resources first makes the app
+more slow. 
+
+At this time, firmware upgrades and device restarts still make use of playwright's web automation API. Additionally,
+option 3 is still pending implementation, and more user-error checking needs to be reflected on the UI side.
+
+
+### Additional Notes ###
+
+More on the flawed Condition implementation:
+> The async primitive Condition was being used by two separate event loops. Textual UI has its own event loop
+(by its internal asyncio design), and further confusion was added by encapsulating the textual app in run_ui() which
+ran as an OS thread. main() had its own event loop with the asyncio.run() call which managed the listen() and
+chk_for_logout() tasks. Moreover, when Condition was imported from threading, trouble came with setting up the 
+chk_for_logout() task due to the blocking nature of this non-async primitive. 
+
+> Asyncio objects are not thread-safe and cannot be shared between event loops in different
+threads. This issue arose once aiohttp began to be used in program implementation. "What" exactly broke or exposed 
+this issue is unclear at this time.
+
+Critical bug fix: 
+>There was a race condition on the listen() function for the driver that was corrected by the use of an additional attribute 
+for async requests between the driver and the UI (send_request()). This was not an issue before because there were no internal 
+data structures used by the driver to update. With the addition of temp_dat, it became clear that there was an issue in which 
+responses from the driver were being parsed by the driver as requests, yielding anomalous values.
+	  

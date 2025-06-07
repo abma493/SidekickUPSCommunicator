@@ -21,8 +21,9 @@ class BaseScreen(Screen):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
+        
 
-    def on_mount(self):
+    async def on_mount(self):
         self.screen.styles.background = "darkblue"
         self.screen.styles.border = ("heavy", "white")
         Logger.log("UI loaded OK.")
@@ -82,8 +83,9 @@ class BaseScreen(Screen):
             # Signal driver to process login
             sem_driver.release()
             # Wait for driver to complete login 
+            await self.app.load_driver()
             # (prevent blocking the event loop/ only this coroutine waits, not entire program)
-            await asyncio.to_thread(sem_UI.acquire)
+            await sem_UI.acquire()
             
             # Get response from queue
             response = comm_queue.get()
