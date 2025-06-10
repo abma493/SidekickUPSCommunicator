@@ -1,11 +1,12 @@
-The Vertiv-compatible UPS "Vertiv Communicator" is a lightweight application currently in development (just Windows at the moment) to communicate with webcards for Vertiv UPS devices.
-This application serves as a tool to do simple modifications on a single device, but it stands out for handling batches of webcards for configuration changes including configuration files and firmware updates. 
+As of 6/10:
 
-My project has no affiliation with Vertiv.
-Read the contents of Notes directory for latest updates in detail.
+Major changes have been set as version 2.1 with some goals on their way for quality assurance and documentation. 
+Application is now able to perform the following:
+* Batch operations (Import / Export / Firmware upgrade)
+* Retrieve diagnostics files .gz (for single device or batch file of devices)
+* Push a firmware upgrade for the currently logged into device
+* Change network settings for this current device
+* Use a CSV file to assign network changes to a batch of devices with associated unique IPs
 
-As of 5/15/2025:
 
-This project is still in progress, and work is planned for Unix-like environment compatibility.
-There may (and most likely are) be hiccups when running large (10+) batch files. At this time this is still being polished.
-Most other options are not yet fully functional since the priority has been getting the batch stuff going.
+For more information please see the most recently dated file under the Notes directory.
