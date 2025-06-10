@@ -3,11 +3,9 @@ import os
 import asyncio
 import aiohttp
 from aiohttp import BasicAuth
-from threading import Thread, Lock, Condition
 from queue import Queue, Empty
 import multiprocessing as mp
 from logger import Logger
-from multiprocessing import Process
 from enum import Enum, auto
 
 # not uniformly used across the application
@@ -19,6 +17,13 @@ class Operation(Enum):
     IMPORT = auto()
     FIRMWARE = auto()
     DIAGNOSTICS = auto()
+
+class ModeMismatch(Exception):
+    def __init__(self, message):
+        super().__init__()
+        self.message: str = message
+    def get_err_msg(self) -> str:
+        return self.message
 
 # parse the IPs in the batch file to a list of jobs 
 # A job entry in the list is comprised of an IP and an ID

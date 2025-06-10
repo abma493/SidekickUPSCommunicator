@@ -1,0 +1,5 @@
+6/10 Updates:
+
+> More user error checks supported to prevent problems on application 
+
+> New feature for CSV import batch files for mass IP changes 

@@ -12,7 +12,11 @@ async def http_session(ip, username, password, request = Operation.EXPORT, filen
         
     async with aiohttp.ClientSession(connector=aiohttp.TCPConnector(ssl=False)) as session:
         # Initialize
-        await session.get(f'http://{ip}/web/initialize.htm')
+        try:
+            await session.get(f'http://{ip}/web/initialize.htm')
+        except Exception as e:
+            Logger.log(f"Failure reaching host {ip}: {e}")
+            return False
         
         # Login and get session token
         async with session.get(f'http://{ip}/session/unityLogin.htm?devId=4', auth=auth) as resp:

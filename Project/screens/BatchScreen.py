@@ -1,6 +1,6 @@
 from common.common_term import *
 from playwright.async_api import async_playwright, expect, Page
-from common.common_imports import default_timeout, parse_to_list, Operation
+from common.common_imports import *
 from textual.widgets import Select
 from syncprims import send_request
 from logger import Logger
@@ -10,13 +10,6 @@ from .QuitScreen import QuitScreen
 from http_session import http_session
 import asyncio
 import copy
-
-class ModeMismatch(Exception):
-    def __init__(self, message):
-        super().__init__()
-        self.message: str = message
-    def get_err_msg(self) -> str:
-        return self.message
 
 class BatchScreen(Screen):
     
@@ -35,12 +28,17 @@ class BatchScreen(Screen):
         self.mode = Operation.EXPORT                            # determines mode (EXPORT by default, IMPORT or FIRMWARE UP)
         self.success_count = 0                                  # num of jobs completed successfully
         self.small_batch_lim = 5                                # used to limit range of active jobs in large batch files
+        self.all_opts = [
+            ("Export", True),
+            ("Import", bool(self.path_to_config)),
+            ("Firmware Update", bool(self.path_to_firmware))
+        ]
         super().__init__()
 
     async def on_mount(self):
-        chg_t: bool = await send_request("CHG_THRESHOLD", 15)
+        chg_t: bool = await send_request("SET_THRESHOLD", 15)
         if not chg_t:
-            self.app.panic(Label("APP PANIC: FATAL ERROR ADJUSTING CHK_LOGOUT THRESHOLD."))
+            self.app.panic("APPLICATION PANIC: FATAL ERROR ADJUSTING CHK_LOGOUT THRESHOLD.")
         self.quit_button = self.query_one("#quit-button", Button)
         self.back_button = self.query_one("#back-button", Button)
 
@@ -68,9 +66,9 @@ class BatchScreen(Screen):
                 yield Button("<Q - Quit>", id="quit-button")
                 yield Button("<Run>", id="run-button")
                 yield Select(
-                    ((option, option) for option in ["Export", "Import", "Firmware Update"]),
+                    ((option, option) for option, enabled in self.all_opts if enabled),
                     value="Export",
-                    prompt="",
+                    prompt="<Select Operation>",
                     id="mode-select"                    
                 )
 
@@ -197,7 +195,7 @@ class BatchScreen(Screen):
                         if "GXT5" in devmodel and "UNITY" in self.current_mode:
                             raise ModeMismatch(f"{devmodel} cannot receive a UNITY firmware update.") 
                         if "GXT4" in devmodel and "RDU101" in self.current_mode:
-                            raise ModeMismatch(f"{devmodel} cannot receive a UNITY firmware update.")
+                            raise ModeMismatch(f"{devmodel} cannot receive an RDU101 firmware update.")
 
                         # Select the firmware update folder                       
                         firmware_folder = await navigation_frame.wait_for_selector("#report164380", timeout=10000)

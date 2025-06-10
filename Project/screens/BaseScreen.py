@@ -1,5 +1,6 @@
 from common.common_term import *
 from .OptionsScreen import OptionsScreen
+from .QuitScreen import QuitScreen
 from textual.message import Message
 from textual import work
 from syncprims import sem_driver, sem_UI, comm_queue
@@ -29,7 +30,7 @@ class BaseScreen(Screen):
         Logger.log("UI loaded OK.")
 
     def compose(self) -> ComposeResult:
-        yield Static("Vertiv Communicator", id="title")
+        yield Static("Sidekick UPS Communicator", id="title")
         yield Static("", classes="box")# empty
 
         with Vertical(id="main"):
@@ -54,6 +55,9 @@ class BaseScreen(Screen):
 
         with Horizontal(id="status"):
             yield Label(f'{self.info_msg}', id="info")
+        
+        with Horizontal(id="quit-container"):
+            yield Button("<Q - Quit>", id="quit-button")
 
     @on(Button.Pressed, "#ok")
     async def on_ok_pressed(self):
@@ -62,6 +66,10 @@ class BaseScreen(Screen):
         # Use the asyncio-compatible login processing
         self.process_login_async()
     
+    @on(Button.Pressed, "#quit-button")
+    def on_quit_pressed(self):
+        self.app.push_screen(QuitScreen(skipdrv_f=True))
+
     # Using Textual's work decorator to run as an async worker
     @work(exclusive=True)
     async def process_login_async(self):

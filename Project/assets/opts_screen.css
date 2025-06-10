@@ -29,8 +29,13 @@ OptionList {
     height: 3;
 }
 
+#status-label {
+    width: auto;
+    height: 3;
+}
+
 #help-button {
-    margin-left: 50;
+    margin-left: 70;
 }
 
 Button {

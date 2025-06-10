@@ -21,6 +21,7 @@ class Request(Enum):
     PUSH_CHANGES    = auto()
     HOLD_CHANGES    = auto()
     GET_DIAGNOSTICS = auto()
+    GET_IP          = auto()
     REQ_CREDS       = auto()
     SET_THRESHOLD   = auto()
     
@@ -215,6 +216,8 @@ class Driver():
                 return self.send_creds()
             case Request.SET_THRESHOLD:
                 return self.set_threshold(message)
+            case Request.GET_IP:
+                return self.ip
             case _:
                 pass
         return None 

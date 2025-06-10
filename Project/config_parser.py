@@ -30,5 +30,3 @@ def cfg_dat_parser(file_path: str) -> dict[str, list[tuple[str, str]]]:
     # dict comprehension
     return { section: list(config[section].items()) for section in sections if section in config }
 
-
-# result = cfg_dat_parser('config_00-09-f5-31-6a-f4_2025-06-01_23-16-30.txt')

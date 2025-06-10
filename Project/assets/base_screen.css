@@ -86,3 +86,8 @@ ToggleButton {
     align: center middle;
     column-span: 1;
 }
+
+#quit-container {
+    align: center middle;
+    column-span: 1;  
+}

@@ -57,6 +57,12 @@ ToggleButton {
     border-top: white;
     column-span: 2;
     height: 3;
+    align: left middle;
+}
+
+#status-label {
+    margin: 1 0;
+    height: 3;
 }
 
 #ip-field-container {
@@ -75,6 +81,11 @@ ToggleButton {
     width: 50%;
 }
 
+#path-to-csv {
+    height: auto;
+    width: 40;
+    margin-top: 1;
+}
 
 #current-network-settings {
     height: 1fr;  /* Give it a fraction of available space */
@@ -87,6 +98,6 @@ ToggleButton {
 }
 
 
-#apply-button, #set-button {
+#apply-button, #set-button, #run-button {
     border: white;
 }
