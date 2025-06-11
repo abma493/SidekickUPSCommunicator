@@ -1,0 +1,22 @@
+########### Sidekick Communicator v.2.1 ###########
+
+It's finally here! (*Drum roll*) A very niche tool for a specific brand-model UPS line of devices! 
+Well... at least it can get USEFUL stuff done :)
+
+Steps to install:
+    Not yet! 
+
+
+Developer Notes:
+* Some parts of the program are made slower due to the overhead caused by the playwright web scraping tool. Unfortunately,
+  it's easier and so far quickest to perform restarts and firmware updates using playwright. I've kept a class variable at 
+  the driver for a playwright instance, thus the login is insufferably slower than it could be with aiohttp. BUT it makes
+  the current device's restart/firmware upgrade significantly faster since it doesn't have to go through the login overhead
+  except when starting the app for the first time. However, the same cannot be said for batch operations, which always create
+  a playwright instance per batch item. A solution to simply use aiohttp in replacement of playwright is underway, but it may
+  be some time before this happens...
+
+* I intend to implement a tool extension to this app called "ScanNet", which should essentially pull all the pingable IPs
+  associated to Vertiv UPS devices, along with their card type. By doing this, a user would be able to export files separating
+  those devices by card types, and choose to run batch operations on each. It seems like a neat extension that won't need more
+  than a few tricks. This tool is an idea as of this release and it may be some time before it happens.

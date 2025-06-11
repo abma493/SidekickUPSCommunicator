@@ -33,7 +33,7 @@ async def restart_card(page: Page, ip) -> True:
         Logger.log(f"Timeout Error during reboot wait: {e}")
         return False
     
-# Restart a card by IP address
+# Restart a card by IP address (e.g. for batch mode operations)
 async def restart_a_card(ip: str = None, username: str = None, password: str = None) -> bool:
     if ip and username and password:
         playwright = await async_playwright().start()
