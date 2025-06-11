@@ -1,6 +1,7 @@
 import re
 from logger import Logger
 from asyncio import CancelledError
+from datetime import datetime
 from common.common_imports import *
 
 async def http_session(ip, username, password, request = Operation.EXPORT, filename=None, stat_label=None, prog_bar=None):
@@ -78,14 +79,20 @@ async def export_config_file(session, ip, s_tok, auth, stat_label=None, prog_bar
             async with session.get(download_url, auth=auth) as download_resp:
                 if download_resp.status == 200:
                     config_data = await download_resp.text()
+                    # create export folder
+                    timestamp = datetime.now().strftime("%Y-%m-%d")
+                    export_dir = f"config_exports_{timestamp}"
+                    os.makedirs(export_dir, exist_ok=True)
+                    # full path here
+                    f_path = os.path.join(export_dir, config_filename)
                     # Save to file
-                    with open(f'{config_filename}', 'w') as f:
+                    with open(f_path, 'w') as f:
                         f.write(config_data)
                     Logger.log(f"Config exported to: {config_filename}")
                     if stat_label is not None:
                         stat_label.update("Done.")
                         prog_bar.advance(50)
-                    return config_filename # used by the driver
+                    return f_path # used by the driver
                 else:
                     Logger.log(f"Download failed: {download_resp.status}")
         else:

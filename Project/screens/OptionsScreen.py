@@ -26,6 +26,10 @@ class OptionsScreen(Screen):
         ("3", "push_firmware_update"),
         ("4", "restart_card"),
         ("5", "batch_operations"),
+        ("up", "focus_previous"),
+        ("down", "focus_next"),
+        ("left", "focus_previous"), 
+        ("right", "focus_next"),
     ]
 
     def __init__(self):
@@ -62,7 +66,14 @@ class OptionsScreen(Screen):
                 yield Label(f"Mode: Single (Default)", id="status-label")
                 yield Label(f"", id="info-label")
                 yield Button("<?>", id="help-button")
-    
+
+
+    def action_focus_next(self):
+        self.focus_next()
+
+    def action_focus_previous(self):
+        self.focus_previous()
+
     # Quitting the app will ask for confirmation
     def action_quit_app(self) -> None:
         self.app.push_screen(QuitScreen())
@@ -152,18 +163,21 @@ class OptionsScreen(Screen):
 
 
     # Used by OptionsList UI component to handle selection on "Enter" by user
-    def on_option_list_option_selected(self, event: OptionList.OptionSelected) -> None:
+    async def on_option_list_option_selected(self, event: OptionList.OptionSelected) -> None:
         
         index = event.option_index
 
         option_actions = {
             0: self.action_mod_network_settings,
-            2: lambda: self.action_get_diagnostics_file,
-            4: lambda: None,
+            2: self.action_get_diagnostics_file,
+            4: self.action_push_firmware_update,
             6: self.action_restart_card,
             8: self.action_batch_operations,
         }
 
         if index in option_actions:
             action = option_actions[index]
-            action()
+            if asyncio.iscoroutinefunction(action):
+                await action()
+            else:
+                action()

@@ -19,6 +19,10 @@ class ModNetworkScreen(ModalScreen):
     BINDINGS = [
         ("q", "quit_app"),
         ("b", "back_menu"),
+        ("up", "focus_previous"),
+        ("down", "focus_next"),
+        ("left", "focus_previous"), 
+        ("right", "focus_next"),
     ]
     
     async def on_mount(self):
@@ -98,6 +102,12 @@ class ModNetworkScreen(ModalScreen):
                  id="options"),
         id="ntwk-config-grid")
 
+    def action_focus_next(self):
+        self.focus_next()
+
+    def action_focus_previous(self):
+        self.focus_previous()
+
     def action_quit_app(self) -> None:
         self.app.push_screen(QuitScreen())
 
@@ -112,7 +122,7 @@ class ModNetworkScreen(ModalScreen):
     async def on_set_pressed(self):
         ip_field = self.query_one("#ip-field", Input)
         subnet_mask_field = self.query_one("#subnet-mask-field", Input)
-        if ip_field != "IP address" or subnet_mask_field != "Subnet mask":
+        if not ip_field.value or not subnet_mask_field.value:
             self.app.push_screen(NotifMsgScreen("One or more fields are empty.\nPlease enter valid values before setting changes."))
             return
 
