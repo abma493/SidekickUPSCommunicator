@@ -2,4 +2,7 @@
 
 > More user error checks supported to prevent problems on application 
 
-> New feature for CSV import batch files for mass IP changes 
+> New feature for CSV batch files for mass IP changes 
+    * Import of network settings and restart to set new changes
+
+> UI fixes to the ModNetworkScreen relating to the CSV batch file ListView
