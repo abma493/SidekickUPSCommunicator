@@ -1,6 +1,0 @@
-5-23-25 Update
-
-> Help modal screen added in options screen. It needs to have more page(s) added and its content curated.
-
-> Warning/alert (NotifMsg screen) added when user selects batch mode in edit screen and one or more file paths are bad.
-    * Need to display which file(s) are bad specifically
