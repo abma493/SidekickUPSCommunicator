@@ -5,6 +5,8 @@ from .QuitScreen import QuitScreen
 from .PushChangesScreen import PushChangesScreen
 from .NotifMsgScreen import NotifMsgScreen
 from .ConfirmationScreen import ConfirmationScreen
+from login import login
+from restart_card import restart_a_card
 from logger import Logger
 from http_session import http_session
 import csv
@@ -100,6 +102,10 @@ class ModNetworkScreen(ModalScreen):
     def action_quit_app(self) -> None:
         self.app.push_screen(QuitScreen())
 
+    @on(Button.Pressed, "#quit-button")
+    def on_quit_pressed(self) -> None:
+        self.app.push_screen(QuitScreen())
+
     def action_back_menu(self) -> None:
         self.app.pop_screen()
 
@@ -186,22 +192,28 @@ class ModNetworkScreen(ModalScreen):
         summary_msg+= f"Are you sure you want to continue? (Invalid addresses or disabling DHCP may require a physical setup.)"
         
         # callback to be used after confirmation
-        async def retrive_choice(decision: bool):
+        async def retrieve_choice(decision: bool):
             if decision: # perform the login each time
-                tasks = [asyncio.create_task(self.perform_ntwk_change(entry)) for entry in valid_entries]
-                await asyncio.gather(*tasks)
-                for f in glob.glob("ini*.txt"):
-                    try:
-                        os.remove(f)
-                    except FileNotFoundError:
-                        pass
+                self.app.run_worker(self.run_operations(valid_entries), exclusive=True)
             else:
                 devices_listv.clear()
                 devices_listv.append(ListItem(Label(f"No data available.\n"))) 
         
-        self.app.push_screen(ConfirmationScreen(summary_msg), retrive_choice)
+        self.app.push_screen(ConfirmationScreen(summary_msg), retrieve_choice)
 
+    # run all the tasks associated with the valid entries to be processed
+    # needs to be run in a worker thread so that the UI is not blocked and can be updated (like BatchScreen tasks)
+    async def run_operations(self, valid_entries: list):
+        tasks = [asyncio.create_task(self.perform_ntwk_change(entry)) for entry in valid_entries]
+        await asyncio.gather(*tasks)
+        for f in glob.glob("ini*.txt"):
+            try:
+                os.remove(f)
+            except FileNotFoundError:
+                pass
 
+    # Parse the batch file and return a list of valid entries to be displayed
+    # on the ListView widget. This function will validate the file and each entry.
     def parse_batch_file(self) -> list: 
         valid_entries = []
         invalid_i = 0
@@ -300,6 +312,8 @@ class ModNetworkScreen(ModalScreen):
             Logger.log(f"Unexpected error processing CSV: {str(e)}")
             self.app.push_screen(NotifMsgScreen("General failure processing the CSV file."))
 
+    # Perform the network change operation for a single entry
+    # A temporary ini file is created with the new settings and imported to the device
     async def perform_ntwk_change(self, entry: dict):
         
         dhcp_method = "1" if entry['dhcp'] else "0"
@@ -317,20 +331,12 @@ class ModNetworkScreen(ModalScreen):
         credentials = await send_request("REQ_CREDS")
         stat_label.update("Status: IN PROGRESS")
         success = await http_session(entry['old_ip'], credentials[0], credentials[1], Operation.IMPORT, tmp_ini_file)
-        if success:
-            stat_label.update(f"Status: DONE")
-        else:
+        if success: # import success, neeeds a restart
+            restart_success = await restart_a_card(entry['old_ip'], credentials[0], credentials[1])
+            if restart_success: # import and restart success
+                stat_label.update(f"Status: DONE")
+            else: # restart failed
+                stat_label.update(f"Status: RESTART FAILED")
+                Logger.log(f"Restart failed for device {entry['old_ip']}")
+        else: # import failed
             stat_label.update(f"Status: FAILED")
-
-
-
-
-
-if __name__ == "__main__":
-    
-    class NetworkTestApp(App):
-        def on_mount(self):
-            self.push_screen(ModNetworkScreen())
-    
-    app = NetworkTestApp()
-    app.run()

@@ -76,7 +76,7 @@ class RetrieveDiagnosticsScreen(ModalScreen):
             if success:
                 self.success_count+=1
         except Exception as e:
-            Logger.log(f"General failure retrieving diagnostics file [{ip}]: {e}")
+            Logger.log(f"Failure retrieving diagnostics file [{ip}]: {e}")
 
     def add_ok_button(self):
         # Add the buttons container again, this time with only ONE button 

@@ -1,5 +1,6 @@
 from common.common_term import *
 from playwright.async_api import async_playwright, expect, Page
+from restart_card import restart_a_card
 from common.common_imports import *
 from textual.widgets import Select
 from syncprims import send_request
@@ -61,7 +62,6 @@ class BatchScreen(Screen):
             
             with Horizontal(classes="buttons-container"):
                 yield Button("<Abort All>", id="abort-all")
-                yield Button("<Kill Job>", id="kill-button")  
                 yield Button("<B - Back>", id="back-button")
                 yield Button("<Q - Quit>", id="quit-button")
                 yield Button("<Run>", id="run-button")
@@ -222,6 +222,7 @@ class BatchScreen(Screen):
                         await http_session(ip, self.credentials[0], self.credentials[1], 0, None, stat_label, prog_bar)
                     elif self.mode == Operation.IMPORT:
                         await http_session(ip, self.credentials[0], self.credentials[1], 1, self.path_to_config, stat_label, prog_bar)
+                        await restart_a_card(ip, self.credentials[0], self.credentials[1]) # Restart the web card after import
                 self.success_count+=1
                 break 
             except ModeMismatch as e: # Cancel job due to incompatibility

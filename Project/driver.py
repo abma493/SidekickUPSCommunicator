@@ -2,7 +2,6 @@ from login import setup, login
 from syncprims import sem_driver, sem_UI, comm_queue, queue_cond
 from common.common_imports import *
 from enum import Enum, auto
-from logger import Logger
 import glob
 from restart_card import restart_card
 from http_session import http_session
@@ -302,7 +301,6 @@ class Driver():
         await self.establish_connect(credentials)
         await self.authenticate(credentials)
         await self.load_comms_tab()
-
 
     # Requests a restart from Playwright API to Vertiv site
     # Upon receiving a successful reboot attempt, it will log back in with

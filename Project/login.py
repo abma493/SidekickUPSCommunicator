@@ -1,4 +1,3 @@
-import asyncio
 from common.common_imports import *
 from playwright.async_api import async_playwright, TimeoutError as PlaywrightTimeoutError
 from logger import Logger

@@ -40,7 +40,7 @@ class OptionsScreen(Screen):
         self.screen.styles.border = ("heavy", "white")
 
     def compose(self) -> ComposeResult:
-        yield Static("Sidekick UPS Communicator", id="title") 
+        yield Static("Sidekick Communicator", id="title") 
         
         with Container(id="list-container"):
             yield OptionList(
@@ -65,6 +65,10 @@ class OptionsScreen(Screen):
     
     # Quitting the app will ask for confirmation
     def action_quit_app(self) -> None:
+        self.app.push_screen(QuitScreen())
+    
+    @on(Button.Pressed, "#quit-button")
+    def on_quit_pressed(self) -> None:
         self.app.push_screen(QuitScreen())
 
     # yield the modify network folder screen

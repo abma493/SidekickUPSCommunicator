@@ -30,7 +30,7 @@ class BaseScreen(Screen):
         Logger.log("UI loaded OK.")
 
     def compose(self) -> ComposeResult:
-        yield Static("Sidekick UPS Communicator", id="title")
+        yield Static("Sidekick Communicator", id="title")
         yield Static("", classes="box")# empty
 
         with Vertical(id="main"):

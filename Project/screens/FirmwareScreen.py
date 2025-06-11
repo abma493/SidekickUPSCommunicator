@@ -95,7 +95,7 @@ class FirmwareScreen(ModalScreen):
             Logger.log(f"Firmware upgrade failure: {e.get_err_msg()}")
         except Exception as e:
             self.info_msg.update("General failure upgrading device firmware.")
-            Logger.log(f"General failure upgrading device firmware:\n{e}")
+            Logger.log(f"Failure upgrading device firmware:\n{e}")
         finally:
             self.add_ok_button()
 
