@@ -1,7 +1,8 @@
 help_pages = [
             {
                 "title": "Sidekick Communicator for UPS devices v.2.1",
-                "content": """See the README.md for more information on this application.
+                "content": """See the README.md for more information on using this application 
+or the Release notes for additional technical details.
 
 Main features:
 • Batch operations for multiple devices (Import/Export/Firmware upgrade)
@@ -40,8 +41,9 @@ Note that batch operations may take a while to complete due to required restarts
 
 Features:
 • Select "Retrieve from this device only" to get diagnostics file from the current device	
-• To retrieve from multiple devices, select "Retrieve from batch devices"
-    > You must specify a path to a batch file under "Edit" in the main menu.
+• To retrieve from multiple devices:
+    > Select "Retrieve from batch devices"
+    > You must specify a batch file path under "Edit" in the main menu.
     > Without a valid batch file, this option will be disabled.
 •  All diagnostics files will be saved in the current working directory as a .gzipped file
 
@@ -53,7 +55,8 @@ Features:
 
 Features:
 • Select "Update Now" to push firmware update to the current device
-• This operation requires a valid firmware file path set under "Edit" in the main menu.
+• This operation requires a valid firmware file path
+    > Set this path under "Edit" in the main menu.
     > Without a valid firmware file, this option will be disabled.
 • This process may take 10-15 minutes depending on network connection and restart time of device.
 
@@ -113,11 +116,12 @@ What is a "General Failure" ?
 What if Sidekick hangs or crashes during an operation?
 • If this happens, check the logs to see up to where the operation was completed.
 • Check the logs for how many devices were processed.
-• You may perform a restart on a per-device basis from this application, or from the web.
+• You may perform a restart on a per-device basis from this application, 
+  or from the web.
 
 Aborting a batch job during operation:
 • Aborting does NOT guarantee request is reversed.
 • Once sent to the web server, a request cannot be cancelled.
-• Abort will simply terminate the coroutine of this application."""
+• Abort will simply terminate all active jobs to resume application."""
             }
         ]

@@ -66,7 +66,7 @@ class RetrieveDiagnosticsScreen(ModalScreen):
                 success: bool = await send_request("GET_DIAGNOSTICS")
             else: # multiple device 
                 success: bool = await send_request("GET_DIAGNOSTICS", ip)
-            if not self.batch_mode: # single report     
+            if not self.batch_mode or not ip: # single report     
                 if not success:
                     self.info_msg.update("General failure retrieving diagnostics file. Check log.")
                     self.add_ok_button()

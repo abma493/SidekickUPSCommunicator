@@ -18,47 +18,47 @@ async def http_session(ip, username, password, request = Operation.EXPORT, filen
             Logger.log(f"Failure reaching host {ip}: {e}")
             return False
         
-        # Login and get session token
-        async with session.get(f'http://{ip}/session/unityLogin.htm?devId=4', auth=auth) as resp:
-            content = await resp.text()
-            if resp.status == 200:
-                Logger.log("Login successful")               
-                # Extract sessACT token from response to interact with the site
-                token_match = re.search(r'sessACT=([A-Fa-f0-9]+)', content)
-                
-                if token_match:
-                    s_tok = token_match.group(1)
-                    Logger.log(f"Session token: {s_tok}")                  
+        try:
+            # Login and get session token
+            async with session.get(f'http://{ip}/session/unityLogin.htm?devId=4', auth=auth) as resp:
+                content = await resp.text()
+                if resp.status == 200:
+                    Logger.log("Login successful")               
+                    # Extract sessACT token from response to interact with the site
+                    token_match = re.search(r'sessACT=([A-Fa-f0-9]+)', content)
+                    
+                    if token_match:
+                        s_tok = token_match.group(1)                 
 
-                    # Click Communications button
-                    async with session.get(f'http://{ip}/bezel.html?devId=4&sessACT={s_tok}', auth=auth) as comm_resp:
-                        Logger.log(f"Communications page: {comm_resp.status}")
-                        
-                    # Get child reports (expand Support folder)
-                    async with session.get(f'http://{ip}/httpGetSet/httpGet.htm?devId=4&chldRprt=vel~rprt~chldList~16419~0&sessACT={s_tok}', auth=auth) as child_resp:
-                        Logger.log(f"Support folder: {child_resp.status}")
+                        # Click Communications button
+                        session.get(f'http://{ip}/bezel.html?devId=4&sessACT={s_tok}', auth=auth)
+                            
+                        # Get child reports (expand Support folder)
+                        session.get(f'http://{ip}/httpGetSet/httpGet.htm?devId=4&chldRprt=vel~rprt~chldList~16419~0&sessACT={s_tok}', auth=auth)
+                            
 
-                    # Navigate to Configuration Export/Import
-                    async with session.get(f'http://{ip}/monitor.htm?devId=4&reportId=val~num~16440&mmIdx=val~num~0&sessACT={s_tok}', auth=auth) as config_resp:
-                        Logger.log(f"Config Export/Import: {config_resp.status}")
+                        # Navigate to Configuration Export/Import
+                        session.get(f'http://{ip}/monitor.htm?devId=4&reportId=val~num~16440&mmIdx=val~num~0&sessACT={s_tok}', auth=auth)
+                            
 
-                    if request == Operation.EXPORT: # (ret str)
-                        return await export_config_file(session, ip, s_tok, auth, stat_label, prog_bar)
-                    elif request == Operation.IMPORT: # (ret bool)
-                        return await import_config_file(session, ip, s_tok, auth, filename, stat_label, prog_bar)
-                    else: # DIAGNOSTICS (ret bool)
-                        return await get_diagnostics(session, ip, s_tok, auth)
+                        if request == Operation.EXPORT: # (ret str)
+                            return await export_config_file(session, ip, s_tok, auth, stat_label, prog_bar)
+                        elif request == Operation.IMPORT: # (ret bool)
+                            return await import_config_file(session, ip, s_tok, auth, filename, stat_label, prog_bar)
+                        else: # DIAGNOSTICS (ret bool)
+                            return await get_diagnostics(session, ip, s_tok, auth)
+                    else:
+                        Logger.log("Could not extract session token")
+                        Logger.log("Login response preview:", content[:500])
                 else:
-                    Logger.log("Could not extract session token")
-                    Logger.log("Login response preview:", content[:500])
-            else:
-                Logger.log(f"Login failed: {resp.status}")
+                    Logger.log(f"Login failed: {resp.status}")
+        except Exception as e:
+            Logger.log(f"Failure on session: {e}")
 
 
 async def export_config_file(session, ip, s_tok, auth, stat_label=None, prog_bar=None) -> str:
     
     async with session.get(f'http://{ip}/protected/httpConfigExport.htm?devId=4&sessACT={s_tok}', auth=auth) as export_resp:
-        Logger.log(f"Config export trigger: {export_resp.status}")
         export_content = await export_resp.text()
 
         # Parse the response to find the download link
@@ -150,7 +150,7 @@ async def import_config_file(session, ip, s_tok, auth, file_path, stat_label=Non
 
                         if progress_match:
                             new_progress = int(progress_match.group(1))
-                            Logger.log(f'[{ip}] pcnt: {new_progress}')
+                            # Logger.log(f'[{ip}] pcnt: {new_progress}')
                             if new_progress != progress:
                                 if prog_bar is not None:
                                     prog_bar.advance(int(new_progress - progress))

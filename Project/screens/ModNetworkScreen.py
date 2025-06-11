@@ -5,7 +5,6 @@ from .QuitScreen import QuitScreen
 from .PushChangesScreen import PushChangesScreen
 from .NotifMsgScreen import NotifMsgScreen
 from .ConfirmationScreen import ConfirmationScreen
-from login import login
 from restart_card import restart_a_card
 from logger import Logger
 from http_session import http_session
@@ -274,6 +273,7 @@ class ModNetworkScreen(ModalScreen):
                                 cidr = int(subnet_field[1:])
                                 if not 0 <= cidr <= 32:
                                     raise ValueError(f"Invalid CIDR range provided {cidr}")
+                                subnet_field = self.cidr_to_mask(cidr) # convert the CIDR notation to a subnet mask
                             else:
                                 ipaddress.IPv4Address(subnet_field)
                         except (ValueError, ipaddress.AddressValueError):
@@ -332,6 +332,7 @@ class ModNetworkScreen(ModalScreen):
         stat_label.update("Status: IN PROGRESS")
         success = await http_session(entry['old_ip'], credentials[0], credentials[1], Operation.IMPORT, tmp_ini_file)
         if success: # import success, neeeds a restart
+            stat_label.update("Status: UPLOAD COMPLETE. RESTARTING CARD")
             restart_success = await restart_a_card(entry['old_ip'], credentials[0], credentials[1])
             if restart_success: # import and restart success
                 stat_label.update(f"Status: DONE")
@@ -340,3 +341,9 @@ class ModNetworkScreen(ModalScreen):
                 Logger.log(f"Restart failed for device {entry['old_ip']}")
         else: # import failed
             stat_label.update(f"Status: FAILED")
+
+    @staticmethod
+    def cidr_to_mask(cidr: int):
+        ntwk = ipaddress.IPv4Network(f"0.0.0.0/{cidr}", strict=False)
+        mask = (str(ntwk.netmask))
+        return mask
