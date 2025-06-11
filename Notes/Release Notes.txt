@@ -6,6 +6,11 @@ Well... at least it can get USEFUL stuff done :)
 Steps to install:
     Not yet! 
 
+Dependencies to check for:
+    * playwright
+        > python -m playwright install firefox
+    * aiohttp
+    * textual
 
 Developer Notes:
 * Some parts of the program are made slower due to the overhead caused by the playwright web scraping tool. Unfortunately,
