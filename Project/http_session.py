@@ -24,7 +24,7 @@ async def http_session(ip, username, password, request = Operation.EXPORT, filen
             async with session.get(f'http://{ip}/session/unityLogin.htm?devId=4', auth=auth) as resp:
                 content = await resp.text()
                 if resp.status == 200:
-                    Logger.log("Login successful")               
+                    Logger.log(f"[{ip}] Login successful")               
                     # Extract sessACT token from response to interact with the site
                     token_match = re.search(r'sessACT=([A-Fa-f0-9]+)', content)
                     
@@ -88,13 +88,13 @@ async def export_config_file(session, ip, s_tok, auth, stat_label=None, prog_bar
                     # Save to file
                     with open(f_path, 'w') as f:
                         f.write(config_data)
-                    Logger.log(f"Config exported to: {config_filename}")
+                    Logger.log(f"[[{ip}]] Config exported to: {config_filename}")
                     if stat_label is not None:
                         stat_label.update("Done.")
                         prog_bar.advance(50)
                     return f_path # used by the driver
                 else:
-                    Logger.log(f"Download failed: {download_resp.status}")
+                    Logger.log(f"[{ip}] Download failed: {download_resp.status}")
         else:
             Logger.log("Could not find download link in response")  
         return None
@@ -143,14 +143,13 @@ async def import_config_file(session, ip, s_tok, auth, file_path, stat_label=Non
                         # Check for completion or error messages
                         if 'done' in status_content.lower():
                             progress = 100
-                            Logger.log(f'Changes pushed successfully. ({int(progress)})')
+                            Logger.log(f'[{ip}] Changes pushed successfully.')
                             if stat_label is not None:
                                 prog_bar.advance(int(progress))
                                 stat_label.update("Done.")
                             return True
                         elif 'error' in status_content.lower():
-                            Logger.log("Import failed!")
-                            Logger.log(f"Status response: {status_content}")
+                            Logger.log(f"[[{ip}]] Import failed: Stat response {status_resp}")
                             return False
 
                         progress_match = re.search(r'pcnt=(\d+)', status_content)

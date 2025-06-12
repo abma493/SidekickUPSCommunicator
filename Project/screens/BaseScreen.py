@@ -17,7 +17,15 @@ class LoginMsg(Message):
 # This is the Login/Connection screen shown while driver queries 
 # the web based on a user-provided IP and validates credentials
 class BaseScreen(Screen):
+
     CSS_PATH = "../assets/base_screen.css"
+    BINDINGS = [
+        ("q", "quit_app"),
+        ("up", "focus_previous"),
+        ("down", "focus_next"),
+        ("left", "focus_previous"), 
+        ("right", "focus_next"),
+    ]
     info_msg: reactive = reactive(str, recompose=True)
 
     def __init__(self, *args, **kwargs):
@@ -62,17 +70,24 @@ class BaseScreen(Screen):
     @on(Button.Pressed, "#ok")
     async def on_ok_pressed(self):
         self.info_msg = "INFO: Establishing connection..."
-        
-        # Use the asyncio-compatible login processing
-        self.process_login_async()
+        self.process_login()
+
+    def action_focus_next(self):
+        self.focus_next()
+
+    def action_focus_previous(self):
+        self.focus_previous()
     
     @on(Button.Pressed, "#quit-button")
     def on_quit_pressed(self):
         self.app.push_screen(QuitScreen(skipdrv_f=True))
+    
+    def action_quit_app(self) -> None:
+        self.app.push_screen(QuitScreen(skipdrv_f=True))
 
     # Using Textual's work decorator to run as an async worker
     @work(exclusive=True)
-    async def process_login_async(self):
+    async def process_login(self):
         
         inputs = {
             'username': self.query_one("#username", Input).value,
