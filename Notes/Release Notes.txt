@@ -1,18 +1,17 @@
 ########### Sidekick Communicator v.2.1 ###########
 
-It's finally here! (*Drum roll*) A very niche tool for a specific brand-model UPS line of devices! 
-Well... at least it can get USEFUL stuff done :)
+It's finally here! (*Drum roll*) A very niche tool for Vertiv UPS line of devices! 
 
-Steps to install:
-    Not yet! 
 
-Dependencies to check for:
-    * playwright
-        > python -m playwright install firefox
-    * aiohttp
-    * textual
+========= Steps to install =========
+    > Run the setup.bat batch file to configure your environment (for first time installation ONLY)
+    > That's it! Run the .exe or make a shortcut for your desktop and run it anytime!
 
-Developer Notes:
+
+
+
+========= Developer Notes =========
+
 * Some parts of the program are made slower due to the overhead caused by the playwright web scraping tool. Unfortunately,
   it's easier and so far quickest to perform restarts and firmware updates using playwright. I've kept a class variable at 
   the driver for a playwright instance, thus the login is insufferably slower than it could be with aiohttp. BUT it makes
@@ -21,7 +20,50 @@ Developer Notes:
   a playwright instance per batch item. A solution to simply use aiohttp in replacement of playwright is underway, but it may
   be some time before this happens...
 
-* I intend to implement a tool extension to this app called "ScanNet", which should essentially pull all the pingable IPs
+* I intend to implement a tool extension to this app which should essentially pull all the pingable IPs
   associated to Vertiv UPS devices, along with their card type. By doing this, a user would be able to export files separating
   those devices by card types, and choose to run batch operations on each. It seems like a neat extension that won't need more
   than a few tricks. This tool is an idea as of this release and it may be some time before it happens.
+
+
+
+
+========= Additional troubleshoting =========
+
+1. On first time installation, Sidekick immediately closes.
+    * Make sure you ran the setup.bat file BEFORE running the application for the first time.
+    * Run the application from the directory path that the executable is located using PowerShell or the Command Prompt
+      This will allow you to see the errors without the terminal closing immediately.
+    * Typically this may occur due to missing module(s). 
+    * Check for the following dependencies:
+        > playwright
+        > playwright Firefox component
+        > aiohttp
+        > textual
+
+2. On attempted login, Sidekick will immediately display a message of Unreachable IPs
+    * This error is indicative of playwright's Firefox component not being present in your python environment
+    * Be sure to run the setup.bat file BEFORE running the application for the first time.
+    * Verify python in your environment using PowerShell or the Command Prompt, and proceed to run the following command:
+        > PLAYWRIGHT_BROWSERS_PATH=0 python -m playwright install firefox
+    * If the issue persists, run setup.bat again. 
+    * If the issue persists, run this command to verify your installed dependencies:
+        > pip freeze
+    * Please refer to these articles if you are a developer or are knowledgeable in more advanced troubleshooting:
+        > https://stackoverflow.com/questions/71507913/unable-to-run-python-exe-containing-playwright
+        > https://playwright.dev/python/docs/browsers#install-system-dependencies
+        > OR contact me at abma5283@gmail.com for help!
+
+3. My firmware update keeps failing, why???
+
+    * Verify that your firmware file is in fact appropriate for your target device webcard type (RDU101, IS-UNITY)
+    * It may be the case that the server resources are busy or unavailable (this can happen arbitrarily so give it at least one additional try)
+    * Attempt to push the firmware upgrade on the web to assess the issue further, as the trouble could be in the webcard.
+    * If Sidekick is continously failing on more than 2/3 of a batch operation, please contact me immediately (abma5283@gmail.com)
+
+
+
+
+
+
+(c) 2025 Abraham M. Gonzalez
