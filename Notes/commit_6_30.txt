@@ -2,3 +2,5 @@
 
 * Batch screen job labels had updates missing (Not fatal to program flow)
 * Edit screen loads data from prev entered by user (if so, otherwise defaults to Single at first time)
+* Mod Network screen displays and allows edit for gateway configuration (was overlooked earlier)
+* some code cleanup (comments, etc.), more on the way

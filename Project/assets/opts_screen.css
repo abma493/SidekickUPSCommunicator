@@ -35,7 +35,8 @@ OptionList {
 }
 
 #help-button {
-    margin-left: 70;
+    dock: right;
+    margin-right: 2;
 }
 
 Button {

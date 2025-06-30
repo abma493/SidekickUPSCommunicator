@@ -27,12 +27,13 @@ class ModNetworkScreen(ModalScreen):
     
     async def on_mount(self):
         
+        # save references to textual widgets for use throughout Screen
         self.dhcp_checkbox: Checkbox = self.query_one("#dhcp-checkbox")
         self.current_ip = self.query_one("#current-ip", Static)
         self.current_subnet = self.query_one("#current-subnet", Static)
+        self.current_gateway = self.query_one("#current-gateway", Static)
+
         self.dhcp_checkbox.disabled = True
-        self.dhcp_changed = False #flag to track if dhcp was modded, not the value itself
-        self.pending_dhcp_change = self.dhcp_changed #by default
         self.set_flag = False
         self.path_to_batch = ""
         self.call_after_refresh(self.load_resources)
@@ -52,11 +53,13 @@ class ModNetworkScreen(ModalScreen):
             ntwk_dict = dict(ntwk_dat)        
             ip = ntwk_dict['Static IP Address']
             subnet = ntwk_dict['Subnet Mask']
+            gateway = ntwk_dict['Default Gateway']
             dhcp = "ON" if int(ntwk_dict['IP Address Method']) == 1 else "OFF"
             Logger.log(f"received: [IP: {ip}], [subnet: {subnet}], [dhcp: {dhcp}]")
     
-            self.current_ip.update(f"Current IP: {ip}" if ip else "Current IP: ERROR")
-            self.current_subnet.update(f"Current subnet: {subnet}" if subnet else "Current subnet: ERROR")
+            self.current_ip.update(f"Current IP: {ip}" if ip else "Current IP: UNSET")
+            self.current_subnet.update(f"Current subnet: {subnet}" if subnet else "Current subnet: UNSET")
+            self.current_gateway.update(f"Current gateway: {gateway if gateway else "UNSET"}")
             self.dhcp_checkbox.label = "Set DHCP (Currently: ON)" if dhcp else "Set DHCP (Currently: OFF)"
             self.dhcp_checkbox.disabled = False
             self.dhcp_checkbox.value = dhcp
@@ -79,17 +82,24 @@ class ModNetworkScreen(ModalScreen):
                         Static("Subnet mask:", id="subnet-label"),
                         Input(placeholder="Subnet mask", id="subnet-mask-field"),
                     id="subnet-field-container"),
+                    Horizontal( 
+                        Static("Gateway address:", id="gateway-label"),
+                        Input(placeholder="Gateway address", id="gateway-field"),
+                    id="gateway-field-container"),
                     Horizontal(
+                        Static("Batch file:", id="batch-file-label"),
                         Input(id="path-to-csv", placeholder="Path to batch file (.csv)", disabled=False),
                     id="csv-field-container"),
                 id="upper-fields-container"),
                 Horizontal(
                           Button("SET", id="set-button"),
                           Button("Apply Changes", id="apply-button"),
-                          Button("Run Batch", id="run-button", disabled=True)),
+                          Button("Run Batch", id="run-button", disabled=True),
+                          id="actions-container"),
                 Vertical(
                         Static(f"Current IP: LOADING", id="current-ip"),
                         Static(f"Current subnet: LOADING", id="current-subnet"),
+                        Static(f"Current gateway: LOADING", id="current-gateway"),
                 id="current-network-settings"),
             id="configurations"),
             ListView(
@@ -118,21 +128,35 @@ class ModNetworkScreen(ModalScreen):
     def action_back_menu(self) -> None:
         self.app.pop_screen()
 
+
+    # For posterity, the idea behind "setting" is for user configurations
+    # to persist locally during application session. That is, on exit, 
+    # if changes were NOT saved, then the changes are lost. Why?
+    # Assuming more features are added to mod specific components of the UPS
+    # currently logged into, users can cache changes before pushing them since it takes time.
     @on(Button.Pressed, "#set-button")
     async def on_set_pressed(self):
+
+        # retrieve the field inputs from user
         ip_field = self.query_one("#ip-field", Input)
         subnet_mask_field = self.query_one("#subnet-mask-field", Input)
+        gateway_field = self.query_one("#gateway-field", Input)
+        
+        # if one of the fields is empty, throw error via UI
         if not ip_field.value or not subnet_mask_field.value:
             self.app.push_screen(NotifMsgScreen("One or more fields are empty.\nPlease enter valid values before setting changes."))
             return
 
+        # send request to driver to hold the changes locally
         success: bool = await send_request("HOLD_CHANGES", {
             "Network.IPv4": [
                 ("IP Address Method", "1" if self.dhcp_checkbox.value else "0"),
                 ("Static IP Address", str(ip_field.value)),
-                ("Subnet Mask", str(subnet_mask_field.value))
+                ("Subnet Mask", str(subnet_mask_field.value)),
+                ("Default Gateway", str(gateway_field.value))
             ]           
         })
+
         self.set_flag = success # important in case apply changes is hit first
         notif_message = "Select Apply Changes now or at the main menu to push\n      all changes made to this device."
         if not success:
@@ -147,12 +171,6 @@ class ModNetworkScreen(ModalScreen):
             self.app.push_screen(PushChangesScreen())
         else:
             self.app.push_screen(NotifMsgScreen("No changes have been set.\nPlease set changes before applying."))
-
-    @on(Checkbox.Changed, "#dhcp-checkbox")
-    def handle_dhcp_checkbox(self, event: Checkbox.Changed):
-        # save the value here, True for clicked, False for unclicked
-        self.dhcp_changed = True 
-        self.pending_dhcp_change = event.value
 
     @on(Input.Changed, "#path-to-csv")
     def handle_input_change(self, event: Input.Changed):

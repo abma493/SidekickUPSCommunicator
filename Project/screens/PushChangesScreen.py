@@ -41,7 +41,7 @@ class PushChangesScreen(ModalScreen):
 
     async def push_changes_and_restart(self):
         try: 
-            # push the changes
+            # request driver to push the changes
             ret_val = await send_request("PUSH_CHANGES")
             if ret_val < 1:
                 if ret_val == 0:

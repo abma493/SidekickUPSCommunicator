@@ -45,12 +45,13 @@ ToggleButton {
 
 #configurations, #devices-update {
     column-span: 1;
-    height: 100;
+    height: 1fr;  /* Changed from fixed height: 100 to flexible */
+    overflow-y: auto;  /* Added overflow handling */
 }
 
 #devices-update {
     border: thick white;
-    height:100;
+    height: 1fr;  /* Changed from fixed height: 100 */
 }
 
 #options {
@@ -63,19 +64,21 @@ ToggleButton {
 #status-label {
     margin: 1 0;
     height: 3;
+    width: 25;
 }
 
-#ip-field-container {
-    margin-top: 2;
+#ip-field-container, #subnet-field-container, #gateway-field-container, #csv-field-container {
+    margin-top: 1;
     height: auto;
+    width: 1fr;
 }
 
-#ip-label, #subnet-label {
+#ip-label, #subnet-label, #gateway-label, #batch-file-label {
     padding-bottom: 1;
     width:auto;
 }
 
-#ip-field, #subnet-mask-field {
+#ip-field, #subnet-mask-field, #gateway-field {
     background: darkblue;
     margin-left: 1;
     width: 50%;
@@ -83,21 +86,40 @@ ToggleButton {
 
 #path-to-csv {
     height: auto;
-    width: 40;
+    width: 50%;  /* Changed from width: 40 to flexible */
+    margin-left: 1;
+    min-width: 30;  /* Added minimum width */
+}
+
+#actions-container {
+    height: auto;
+    width: 1fr;  /* Changed from width: 40 to flexible */
+    margin-top: 2;
+    min-width: 40;  /* Added minimum width for buttons */
+}
+
+#csv-field-container {
+    width: 1fr;  /* Added to ensure CSV container takes full width */
     margin-top: 1;
 }
 
+#upper-fields-container {
+    width: 1fr;  /* Added to ensure parent container is flexible */
+    height: auto;
+}
+
 #current-network-settings {
-    height: 1fr;  /* Give it a fraction of available space */
-    min-height: 5;  /* Ensure minimum height to fit content */
-    align: center bottom;  /* Align contents to bottom */
+    height: auto;  /* Changed from 1fr to auto */
+    min-height: 5;
+    align: center bottom;
+    margin-top: 2;  /* Added margin for spacing */
 }
 
 #current-network-settings > * {
     width: auto;
 }
 
-
 #apply-button, #set-button, #run-button {
     border: white;
+    margin: 0 1;  /* Added margin between buttons */
 }
