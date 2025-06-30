@@ -9,27 +9,30 @@ class EditScreen(ModalScreen):
     
     CSS_PATH = "../assets/editscreen.css"
 
-    def __init__(self): 
+    def __init__(self, mode, path_batch, path_config, path_firmware): 
         super().__init__()
-        self.batch_mode = False
-        self.firmware_label = "IS-UNITY"
+        self.batch_mode = True if "Batch" in mode else False
+        self.mode_str = mode
+        self.path_batch = path_batch if path_batch else "Path to batch file"
+        self.path_config = path_config if path_config else "Path to config file"
+        self.path_firmware = path_firmware if path_firmware else "Path to firmware file"
     
     def compose(self) -> ComposeResult:
         
         with Container(id="edit-modal"):
             yield Label("Edit Mode", id="title")
-            yield Label("Current Mode: Single", id="mode-label")
+            yield Label(f"Current Mode: {self.batch_mode}", id="mode-label")
             yield Select(
                 ((option, option) for option in ["Single", "Batch (RDU101)", "Batch (IS-UNITY)"]),
-                value="Single",
+                value="Single" if "Single" in self.mode_str else self.mode_str,
                 prompt="<Select Mode>",
                 id="mode-select"
             )
             
-            yield Input(id="path-batch", placeholder="Path to batch file", disabled=True)
-            yield Input(id="path-config", placeholder="Path to config file", disabled=True)
+            yield Input(id="path-batch", placeholder=self.path_batch, disabled=True)
+            yield Input(id="path-config", placeholder=self.path_config, disabled=True)
             # Should be available on both modes, optional unless attempting to push firmware
-            yield Input(id="path-firmware", placeholder="Path to firmware file", disabled=False)
+            yield Input(id="path-firmware", placeholder=self.path_firmware, disabled=False)
             
             yield Button("OK", variant="primary", id="ok-button")
         

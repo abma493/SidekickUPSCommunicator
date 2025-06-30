@@ -146,7 +146,7 @@ class OptionsScreen(Screen):
             status_label.update(f"Mode: {self.current_mode}") 
             Logger.log(f"All values set. Look at current_mode: {self.current_mode}\npath_to_config {self.path_to_config}") # TEST
 
-        self.app.push_screen(EditScreen(), check_edit)
+        self.app.push_screen(EditScreen(self.current_mode, self.path_to_config, self.path_to_batch, self.path_to_firmware), check_edit)
     
     # handle the batch operations
     async def action_batch_operations(self) -> None:

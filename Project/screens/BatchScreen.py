@@ -39,7 +39,7 @@ class BatchScreen(Screen):
     async def on_mount(self):
         chg_t: bool = await send_request("SET_THRESHOLD", 15)
         if not chg_t:
-            self.app.panic("APPLICATION PANIC: FATAL ERROR ADJUSTING CHK_LOGOUT THRESHOLD.")
+            self.app.panic("APP PANIC: FATAL ERROR ADJUSTING CHK_LOGOUT THRESHOLD.")
         self.quit_button = self.query_one("#quit-button", Button)
         self.back_button = self.query_one("#back-button", Button)
 
@@ -62,8 +62,8 @@ class BatchScreen(Screen):
             
             with Horizontal(classes="buttons-container"):
                 yield Button("<Abort All>", id="abort-all")
-                yield Button("<B - Back>", id="back-button")
-                yield Button("<Q - Quit>", id="quit-button")
+                yield Button("<Back>", id="back-button")
+                yield Button("<Quit>", id="quit-button")
                 yield Button("<Run>", id="run-button")
                 yield Select(
                     ((option, option) for option, enabled in self.all_opts if enabled),
@@ -74,12 +74,12 @@ class BatchScreen(Screen):
 
     @on(Button.Pressed, "#return-button")
     async def on_return_pressed(self) -> None:
-        chg_t = await send_request("CHG_THRESHOLD", 120)
+        chg_t = await send_request("SET_THRESHOLD", 90)
         self.app.pop_screen()
 
     @on(Button.Pressed, "#back-button")
     async def on_back_pressed(self) -> None:
-        chg_t = await send_request("CHG_THRESHOLD", 120)
+        chg_t = await send_request("SET_THRESHOLD", 90)
         self.app.pop_screen()
     
     @on(Button.Pressed, "#quit-button")
@@ -222,8 +222,10 @@ class BatchScreen(Screen):
                         await http_session(ip, self.credentials[0], self.credentials[1], Operation.EXPORT, None, stat_label, prog_bar)
                     elif self.mode == Operation.IMPORT:
                         await http_session(ip, self.credentials[0], self.credentials[1], Operation.IMPORT, self.path_to_config, stat_label, prog_bar)
+                        stat_label.update("Restarting...")
                         await restart_a_card(ip, self.credentials[0], self.credentials[1]) # Restart the web card after import
                 self.success_count+=1
+                stat_label.update("DONE.")
                 break 
             except ModeMismatch as e: # Cancel job due to incompatibility
                 Logger.log(f"Job #{id} [{ip}] failure : {e.get_err_msg()}")

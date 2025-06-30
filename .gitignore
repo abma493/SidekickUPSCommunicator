@@ -57,5 +57,4 @@ logs/
 .env.production.local
 
 # Project specific
-# Add any specific files or directories for your project here
-batchfile.txt
+# NONE
