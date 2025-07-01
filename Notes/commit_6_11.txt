@@ -1,4 +1,4 @@
-6/10-6/11 Updates:
+6/10 Updates:
 
 > More user error checks supported to prevent problems on application 
 
@@ -6,8 +6,3 @@
     * Import of network settings and restart to set new changes
 
 > UI fixes to the ModNetworkScreen relating to the CSV batch file ListView
-
-> OK button on Edit screen disappearing issue corrected
-
-> Most issues where the "Mode: <Mode>" string alters the UI structure have been corrected,
-  but issues persist with selections of options 3 and 5. 

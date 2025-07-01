@@ -2,7 +2,7 @@ help_pages = [
             {
                 "title": "Sidekick Communicator for UPS devices v.2.1",
                 "content": """See the README.md for more information on using this application 
-or the Release notes for additional technical details.
+or the Release Notes for additional technical details.
 
 Main features:
 • Batch operations for multiple devices (Import/Export/Firmware upgrade)
@@ -105,7 +105,7 @@ Optionally, you can specify:
 """
             },
             {
-                "title": "Gotchas and Pitfalls Pt.1",
+                "title": "Gotchas and Pitfalls",
                 "content": """
 What is a "General Failure" ?
 • This is a "catchall" error used in:

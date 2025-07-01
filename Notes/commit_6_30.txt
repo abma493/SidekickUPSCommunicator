@@ -1,6 +1,14 @@
-6/30 Update:
+6/30-7/1 Update:
 
 * Batch screen job labels had updates missing (Not fatal to program flow)
 * Edit screen loads data from prev entered by user (if so, otherwise defaults to Single at first time)
 * Mod Network screen displays and allows edit for gateway configuration (was overlooked earlier)
 * some code cleanup (comments, etc.), more on the way
+* OK button on Edit screen disappearing issue corrected
+
+* Most issues where the "Mode: <Mode>" string alters the UI structure have been corrected
+    > UI issues with alignment of mode label persist with options 3 and 5.
+
+* Some minor UI touch-ups on Batch screen
+    > Added more meaningful error strings on job lists 
+    > Reaching Host error & Authentication failed error (if subset of devices have diff. credentials)
