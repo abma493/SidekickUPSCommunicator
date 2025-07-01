@@ -221,17 +221,17 @@ class BatchScreen(Screen):
                     if self.mode == Operation.EXPORT:
                         cfg_f = await http_session(ip, self.credentials[0], self.credentials[1], Operation.EXPORT, None, stat_label, prog_bar)
                         if not cfg_f: # if file is None (as ret by export func, or False by failure to set http session)
-                            raise 
+                            raise Exception("Export operation failure.")
                     elif self.mode == Operation.IMPORT:
                         result = await http_session(ip, self.credentials[0], self.credentials[1], Operation.IMPORT, self.path_to_config, stat_label, prog_bar)
                         if not result:
-                            raise
+                            raise Exception("Import operation failure.")
                         stat_label.update("Restarting...")
                         await restart_a_card(ip, self.credentials[0], self.credentials[1]) # Restart the web card after import
                 self.success_count+=1
                 stat_label.update("DONE.")
                 break 
-            except ModeMismatch as e: # Cancel job due to incompatibility
+            except ModeMismatch as e: # Cancel job due to incompatibility (no retries)
                 Logger.log(f"Job #{id} [{ip}] failure : {e.get_err_msg()}")
                 prog_bar.update(total=100, progress=0)
                 stat_label.update(e.get_err_msg()) 
