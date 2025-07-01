@@ -17,8 +17,7 @@ async def http_session(ip, username, password, request = Operation.EXPORT, filen
             await session.get(f'http://{ip}/web/initialize.htm')
         except Exception as e:
             Logger.log(f"Failure reaching host {ip}: {e}")
-            return False
-        
+            return "Failure reaching host"
         try:
             # Login and get session token
             async with session.get(f'http://{ip}/session/unityLogin.htm?devId=4', auth=auth) as resp:
@@ -51,6 +50,10 @@ async def http_session(ip, username, password, request = Operation.EXPORT, filen
                     else:
                         Logger.log("Could not extract session token")
                         Logger.log("Login response preview:", content[:500])
+                
+                elif resp.status == 401:
+                    Logger.log(f"[{ip}] Authenticaltion failed - invalid credentials.")
+                    return "Authentication failed - invalid credentials."
                 else:
                     Logger.log(f"Login failed: {resp.status}")
         except Exception as e:
@@ -108,7 +111,6 @@ async def import_config_file(session, ip, s_tok, auth, file_path, stat_label=Non
     
     with open(file_path, 'rb') as f:
             file_content = f.read()
-
 
     if stat_label is not None:
         stat_label.update("Parsing data...")

@@ -224,18 +224,27 @@ class BatchScreen(Screen):
                             raise Exception("Export operation failure.")
                     elif self.mode == Operation.IMPORT:
                         result = await http_session(ip, self.credentials[0], self.credentials[1], Operation.IMPORT, self.path_to_config, stat_label, prog_bar)
-                        if not result:
+                        if not result: # general failure notice
                             raise Exception("Import operation failure.")
+                        if "Authentication failed" in result: # for bad creds
+                            raise InvalidCredentials(result)
+                        if "reaching" in result: # for failure reaching host
+                            raise ReachHostFailure(result)
                         stat_label.update("Restarting...")
                         await restart_a_card(ip, self.credentials[0], self.credentials[1]) # Restart the web card after import
                 self.success_count+=1
                 stat_label.update("DONE.")
                 break 
-            except ModeMismatch as e: # Cancel job due to incompatibility (no retries)
+            except (ModeMismatch, InvalidCredentials) as e: # Cancel job due to incompatibility (no retries)
                 Logger.log(f"Job #{id} [{ip}] failure : {e.get_err_msg()}")
                 prog_bar.update(total=100, progress=0)
                 stat_label.update(e.get_err_msg()) 
                 break
+            except ReachHostFailure as e:
+                retry += 1
+                Logger.log(f"Job #{id} [{ip}] failure : {e}")
+                stat_label.update(f"Failure reaching host: {retry}/{max_retries}")
+                await asyncio.sleep(5) # let msg show
             except Exception as e:
                 retry += 1
                 Logger.log(f"Job #{id} [{ip}] failure : {e}")

@@ -18,10 +18,31 @@ class Operation(Enum):
     FIRMWARE = auto()
     DIAGNOSTICS = auto()
 
+# Used to handle UI update on 
+# mismatch mode for Batch operations (firmware)
+# (i.e., firmware update on IS-UNITY device with RDU101 file)
 class ModeMismatch(Exception):
     def __init__(self, message):
         super().__init__()
         self.message: str = message
+    def get_err_msg(self) -> str:
+        return self.message
+
+# Specific exception to handle UI update on 
+# invalid credentials for Batch Operations   
+class InvalidCredentials(Exception):
+    def __init__(self, message):
+        super().__init__()
+        self.message: str = message
+
+    def get_err_msg(self) -> str:
+        return self.message
+
+class ReachHostFailure(Exception):
+    def __init__(self, message):
+        super().__init__()
+        self.message: str = message
+
     def get_err_msg(self) -> str:
         return self.message
 
