@@ -12,3 +12,4 @@
 * Some minor UI touch-ups on Batch screen
     > Added more meaningful error strings on job lists 
     > Reaching Host error & Authentication failed error (if subset of devices have diff. credentials)
+    

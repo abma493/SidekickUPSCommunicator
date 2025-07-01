@@ -115,12 +115,14 @@ class BatchScreen(Screen):
             self.running = False
             self.back_button.disabled = False
             self.quit_button.disabled = False
+            self.query_one("#run-button").disabled = False
 
 
     @on(Button.Pressed, "#run-button")
     async def on_run_pressed(self) -> None:
         self.back_button.disabled = True # Unable to go "back" to prev screen
         self.quit_button.disabled = True # Unable to quit the app
+        self.query_one("#run-button").disabled = True
         self.run_worker(self.run_batch_ops(), exclusive=True)
 
     @on(Select.Changed, "#mode-select")
@@ -173,7 +175,7 @@ class BatchScreen(Screen):
     async def run_job(self, ip: str, id: str, max_retries: int = 3):
         stat_label = self.query_one(f"#{id}-stat", Static)
         prog_bar = self.query_one(f"#{id}", ProgressBar)
-        retry = 0
+        retry = 0 # retry tally (up to 3)
         
         while retry < max_retries:
             try:
@@ -241,16 +243,17 @@ class BatchScreen(Screen):
                         result = await http_session(ip, self.credentials[0], self.credentials[1], Operation.IMPORT, self.path_to_config, stat_label, prog_bar)
                         if not result: # general failure notice
                             raise Exception("Import operation failure.")
-                        if "Authentication failed" in result: # for bad creds
+                        if isinstance(result, str) and "Authentication failed" in result: # for bad creds
                             raise InvalidCredentials(result)
-                        if "reaching" in result: # for failure reaching host
+                        if isinstance(result, str) and "reaching" in result: # for failure reaching host
                             raise ReachHostFailure(result)
                         stat_label.update("Restarting...")
                         await restart_a_card(ip, self.credentials[0], self.credentials[1]) # Restart the web card after import
                 self.success_count+=1
                 stat_label.update("DONE.")
                 break 
-            except (ModeMismatch, InvalidCredentials) as e: # Cancel job due to incompatibility (no retries)
+            except (ModeMismatch, InvalidCredentials) as e: 
+                # Cancel job due to incompatibility or invalid creds (no retries)
                 Logger.log(f"Job #{id} [{ip}] failure : {e.get_err_msg()}")
                 prog_bar.update(total=100, progress=0)
                 stat_label.update(e.get_err_msg()) 
