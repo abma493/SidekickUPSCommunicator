@@ -1,11 +1,14 @@
 FirmwareScreen {
     align: center middle;
+    background: rgba(0, 0, 0, 0.7);
 }
 
 #prompt {
     padding: 0 1;
     width: 60;
-    height:11;
+    height:auto;
+    min-height:11;
+    max-height: 90%;
     border: thick white;
     background: darkblue;
 }
@@ -30,3 +33,4 @@ FirmwareScreen {
     width: 100%;
     align: center middle;    
 }
+

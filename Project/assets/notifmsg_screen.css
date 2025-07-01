@@ -2,6 +2,12 @@ NotifMsgScreen {
     align: center middle;
 }
 
+Grid {
+    border: white;
+    background: darkblue;
+    color: white;
+}
+
 #dialog {
     grid-size: 1;
     grid-gutter: 1 2;
@@ -24,11 +30,6 @@ NotifMsgScreen {
     align: center middle;
 }
 
-Grid {
-    border: white;
-    background: darkblue;
-    color: white;
-}
 
 Button {
     border: none;

@@ -45,13 +45,13 @@ ToggleButton {
 
 #configurations, #devices-update {
     column-span: 1;
-    height: 1fr;  /* Changed from fixed height: 100 to flexible */
+    height: 1fr;  
     overflow-y: auto;  /* Added overflow handling */
 }
 
 #devices-update {
     border: thick white;
-    height: 1fr;  /* Changed from fixed height: 100 */
+    height: 1fr;  
 }
 
 #options {
@@ -62,7 +62,6 @@ ToggleButton {
 }
 
 #status-label {
-    margin: 1 0;
     height: 3;
     width: 25;
 }
@@ -86,33 +85,33 @@ ToggleButton {
 
 #path-to-csv {
     height: auto;
-    width: 50%;  /* Changed from width: 40 to flexible */
+    width: 50%;  
     margin-left: 1;
-    min-width: 30;  /* Added minimum width */
+    min-width: 30; 
 }
 
 #actions-container {
     height: auto;
-    width: 1fr;  /* Changed from width: 40 to flexible */
+    width: 1fr;  
     margin-top: 2;
-    min-width: 40;  /* Added minimum width for buttons */
+    min-width: 40;  /* minimum width for buttons */
 }
 
 #csv-field-container {
-    width: 1fr;  /* Added to ensure CSV container takes full width */
+    width: 1fr; 
     margin-top: 1;
 }
 
 #upper-fields-container {
-    width: 1fr;  /* Added to ensure parent container is flexible */
+    width: 1fr;  
     height: auto;
 }
 
 #current-network-settings {
-    height: auto;  /* Changed from 1fr to auto */
+    height: auto;  
     min-height: 5;
     align: center bottom;
-    margin-top: 2;  /* Added margin for spacing */
+    margin-top: 2;  
 }
 
 #current-network-settings > * {
@@ -121,5 +120,5 @@ ToggleButton {
 
 #apply-button, #set-button, #run-button {
     border: white;
-    margin: 0 1;  /* Added margin between buttons */
+    margin: 0 1; 
 }

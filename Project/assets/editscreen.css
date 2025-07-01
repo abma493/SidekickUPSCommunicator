@@ -6,7 +6,9 @@
     grid-columns: 1fr 1fr;
     grid-gutter: 1 2;
     width: 90%;
-    height: 60%;
+    height: auto;
+    max-height: 90%;
+    overflow-y: auto; /* allows for scroll */
     border: thick white;
     background: darkblue;
     align: center middle;

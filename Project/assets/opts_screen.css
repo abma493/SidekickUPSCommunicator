@@ -27,10 +27,12 @@ OptionList {
 #options-container {
     border-top: white;
     height: 3;
+    align: left middle;
+    margin-left: 1;
 }
 
 #status-label {
-    width: auto;
+    width: 25;
     height: 3;
 }
 

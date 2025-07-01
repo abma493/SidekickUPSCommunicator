@@ -144,7 +144,6 @@ class OptionsScreen(Screen):
             # update the UI label
             status_label: Label = self.query_one("#status-label")
             status_label.update(f"Mode: {self.current_mode}") 
-            Logger.log(f"All values set. Look at current_mode: {self.current_mode}\npath_to_config {self.path_to_config}") # TEST
 
         self.app.push_screen(EditScreen(self.current_mode, self.path_to_config, self.path_to_batch, self.path_to_firmware), check_edit)
     
