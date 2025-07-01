@@ -16,6 +16,15 @@ class BatchScreen(Screen):
     
     CSS_PATH = "../assets/batchops.css"
 
+    BINDINGS = [
+        ("q", "quit_app"),
+        ("b", "back_menu"),
+        ("up", "focus_previous"),
+        ("down", "focus_next"),
+        ("left", "focus_previous"), 
+        ("right", "focus_next"),
+    ]
+
     def __init__(self, path_to_batch: str, path_to_config: str, path_to_firmware: str, current_mode, credentials):
         self.jobs = parse_to_list(path_to_batch)                # dynamic list that will have elements removed upon completion
         self.jobs_c = copy.deepcopy(self.jobs)                  # TODO temporary solution to the "abort all" func
@@ -71,6 +80,12 @@ class BatchScreen(Screen):
                     prompt="<Select Operation>",
                     id="mode-select"                    
                 )
+
+    def action_focus_next(self):
+        self.focus_next()
+
+    def action_focus_previous(self):
+        self.focus_previous()
 
     @on(Button.Pressed, "#return-button")
     async def on_return_pressed(self) -> None:
