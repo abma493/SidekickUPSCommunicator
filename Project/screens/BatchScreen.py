@@ -219,9 +219,13 @@ class BatchScreen(Screen):
                 else: # Export or import mode
 
                     if self.mode == Operation.EXPORT:
-                        await http_session(ip, self.credentials[0], self.credentials[1], Operation.EXPORT, None, stat_label, prog_bar)
+                        cfg_f = await http_session(ip, self.credentials[0], self.credentials[1], Operation.EXPORT, None, stat_label, prog_bar)
+                        if not cfg_f: # if file is None (as ret by export func, or False by failure to set http session)
+                            raise 
                     elif self.mode == Operation.IMPORT:
-                        await http_session(ip, self.credentials[0], self.credentials[1], Operation.IMPORT, self.path_to_config, stat_label, prog_bar)
+                        result = await http_session(ip, self.credentials[0], self.credentials[1], Operation.IMPORT, self.path_to_config, stat_label, prog_bar)
+                        if not result:
+                            raise
                         stat_label.update("Restarting...")
                         await restart_a_card(ip, self.credentials[0], self.credentials[1]) # Restart the web card after import
                 self.success_count+=1
