@@ -1,0 +1,15 @@
+7-23 update:
+
+    * Work began on ScanNet feature which will be used ID'ing UPS devices by scanning a network and its subnets.
+    * snmp implementation started to collect UPS stats.
+    * Design created for implementation of the following UI screens / user tools:
+        > ScanNet
+            * params editor (modal screen)
+            * possibly a stand-alone feature that is added to Sidekick but can be used on CLI
+        > Reporter
+            * Show stats (load, battery state, temperature, etc.)
+            * Generate a report 
+                > using ScanNet or loading a batch file of devices
+                > filters available (below/above, integer input, etc.)
+
+    * Minor log output cleanup.
