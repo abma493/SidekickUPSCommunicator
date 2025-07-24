@@ -1,0 +1,100 @@
+/* ScanNet Screen Styles */
+
+Screen {
+    background: #000080;
+    layout: vertical;
+}
+
+#title {
+    dock: top;
+    height: 3;
+    width: 100%;
+    background: white;
+    border: solid #000080;
+    content-align: center middle;
+    text-style: bold;
+    color: #000080;
+    margin: 1;
+}
+
+#scan-container {
+    height: 1fr;
+    width: 100%;
+    layout: vertical;
+    margin: 0 2;
+}
+
+#scan-list {
+    height: 1fr;
+    width: 100%;
+    background: white;
+    border: solid #000080;
+    margin-bottom: 1;
+}
+
+#scan-list > ListItem {
+    content-align: center middle;
+    height: 100%;
+    color: #000080;
+}
+
+#scan-list > ListItem > Label {
+    content-align: center middle;
+    text-align: center;
+    color: #000080;
+}
+
+#scan-progress {
+    height: 3;
+    width: 100%;
+    align:center middle;
+    margin-bottom: 1;
+}
+
+/* Style the progress bar itself */
+#scan-progress > Bar {
+    background: white;
+    border: solid #000080;
+}
+
+#scan-progress > Bar > .bar--bar {
+    background: #000080;
+}
+
+#scan-progress > Bar > .bar--complete {
+    background: #000080;
+}
+
+#scan-controls {
+    dock: bottom;
+    height: 5;
+    width: 100%;
+    layout: horizontal;
+    align: center middle;
+}
+
+#scan-controls Button {
+    width: 12;
+    height: 3;
+    margin: 0 1;
+    background: white;
+    border: solid #000080;
+    content-align: center middle;
+    color: #000080;
+}
+
+#scan-controls Button:focus {
+    background: #000080;
+    border: solid white;
+    color: white;
+}
+
+#scan-controls Button:hover {
+    background: #191970;
+    color: white;
+}
+
+/* Individual button styling */
+#back-button, #cancel-button, #params-button, #scan-button, #export-button {
+    text-style: bold;
+}

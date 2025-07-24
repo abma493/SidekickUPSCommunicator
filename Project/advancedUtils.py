@@ -4,6 +4,9 @@ from pysnmp.hlapi import *
 import asyncio
 import ipaddress
 
+# This function retrieves status info from a single vertiv UPS device
+# It uses SNMP to query the device for various status OIDs and prints the results.
+# TODO should return a dict with the status info instead of printing it directly.
 def ups_status_summary(ip, community_str="sidekick"):
 
     status_OIDs = {
@@ -40,6 +43,9 @@ def ups_status_summary(ip, community_str="sidekick"):
                 print(f"{name}: {value}")
 
 
+# This function retrieves the alarms status from a Vertiv UPS device.
+# It uses SNMP to query the device for active alarms and additional alarm details.
+# TODO should return a dict with the alarms info instead of printing it directly.
 def ups_alarms_stat(ip, community_str:str="sidekick"):
     alm_i = 0
     alms = []
@@ -70,8 +76,8 @@ def ups_alarms_stat(ip, community_str:str="sidekick"):
     if alm_i < 0:
         print("No alarms.")
 
-# Since ARP does nto work across subnets, ARP requests will retrieve a router's MAC address which
-# resides between subnets and thus you will mistakenly get the wrong MAC information for querying devices
+# This function performs an ARP lookup to retrieve the MAC address of a device.
+# It uses SNMP to query the device for its MAC address because ARP requests may not work across subnets.
 def mac_lookup(ip:str, community_str:str="sidekick"):
     
     vertiv_oui = "00:09:f5"
@@ -100,7 +106,11 @@ def mac_lookup(ip:str, community_str:str="sidekick"):
                     return True  
     return False
 
-# 
+# This function scans a classful network and retrieves Vertiv UPS devices.
+# It supports segmentation of the network into subnets and can handle both contiguous
+# and non-contiguous subnets. It uses ping to check for device availability and 
+# SNMP to identify devices by their MAC address.
+#
 # params:
 #       prefix       - The classful address of the network. It must have a
 #                      CIDR notation to complete the syntax (e.g., 10.30.0.0/16)
@@ -122,7 +132,6 @@ def mac_lookup(ip:str, community_str:str="sidekick"):
 #       attempts     - Used by ping function to custom set the # of tries
 #       interval     - Used by ping function to custom set the interval # in-between attempts
 #       OUI          - Used to set the OUI match for the arp request used to ID device found by ping
-
 async def scanNet(prefix:str | None, 
             segmentation:int=23, 
             contiguous:bool=False, 
@@ -151,6 +160,17 @@ async def scanNet(prefix:str | None,
     if contiguous and cont_n > 0:
         tasks = [asyncio.create_task(scan_subnet(subnet, attempts, interval)) for subnet in subnets[:cont_n]]
         await asyncio.gather(*tasks)
+    
+    if noncont_arr is not None:
+        for network in noncont_arr:
+            try:
+                subnet = ipaddress.IPv4Network(network)
+                if subnet.prefixlen == segmentation:
+                    await scan_subnet(subnet, attempts, interval)
+                else:
+                    print(f"Skipping {network} as it does not match the segmentation {segmentation}.")
+            except ValueError as e: # TODO Error will need better handling
+                print(f"Invalid subnet {network}: {e}")
 
 # subroutine to be called as a thread by asyncio
 async def scan_subnet(subnet, attempts:int, interval:int):
@@ -165,6 +185,7 @@ async def scan_subnet(subnet, attempts:int, interval:int):
             print(f"{str(host)}: unreachable")
 
 
+# TESTING THE FUNCTION
 asyncio.run(scanNet("10.26.0.0/16", 23, True, 5, None, False))
 
 
