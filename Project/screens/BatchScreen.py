@@ -46,7 +46,8 @@ class BatchScreen(Screen):
         super().__init__()
 
     async def on_mount(self):
-        chg_t: bool = await send_request("SET_THRESHOLD", 15)
+        
+        chg_t: bool = await send_request("SET_THRESHOLD", 15, True)
         if not chg_t:
             self.app.panic("APP PANIC: FATAL ERROR ADJUSTING CHK_LOGOUT THRESHOLD.")
         self.quit_button = self.query_one("#quit-button", Button)
@@ -260,7 +261,7 @@ class BatchScreen(Screen):
                 break
             except ReachHostFailure as e:
                 retry += 1
-                Logger.log(f"Job #{id} [{ip}] failure : {e}")
+                Logger.log(f"Job #{id} [{ip}] failure : {e.get_err_msg()}")
                 stat_label.update(f"Failure reaching host: {retry}/{max_retries}")
                 await asyncio.sleep(5) # let msg show
             except Exception as e:

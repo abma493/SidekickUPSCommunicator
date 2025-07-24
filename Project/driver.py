@@ -80,7 +80,6 @@ class Driver():
                         break
                     await asyncio.sleep(1)
                 
-                Logger.log(f'CHK_LOGOUT triggered by threshold of {self.threshold} seconds')
                 try:
                     await self.page.wait_for_url(
                         lambda url: url.startswith(f"http://{self.ip}/web/initialize.htm?mode=sessionTmo"), timeout=1000
@@ -354,6 +353,7 @@ class Driver():
     def set_threshold(self, time_n):
         if not isinstance(time_n, int):
             return False
+        Logger.log(f"Threshold changed to {time_n}, was {self.threshold}.")
         self.threshold = time_n
         return True
 

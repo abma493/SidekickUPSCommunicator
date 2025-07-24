@@ -126,7 +126,7 @@ async def import_config_file(session, ip, s_tok, auth, file_path, stat_label=Non
         if stat_label is not None:
             stat_label.update("Uploading config file...")  
         async with session.post(import_url, data=data, auth=auth) as resp:
-            Logger.log(f"Upload status: {resp.status}")
+            Logger.log(f"[{ip}] Upload status: {resp.status}")
             if resp.status != 200:
                 Logger.log("Upload failed")
                 return False

@@ -62,7 +62,6 @@ def parse_to_list(path_to_batch: str) -> list:
                 "ip": ip,
                 "id": f'job-entry{i}'
             }
-            Logger.log(f'appending {entry["ip"]}/{entry["id"]}')
             jobs.append(entry)
 
     return jobs
