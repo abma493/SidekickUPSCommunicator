@@ -1,18 +1,19 @@
 help_pages = [
             {
-                "title": "Sidekick Communicator for UPS devices v.2.1",
-                "content": """See the README.md for more information on using this application 
-or the Release Notes for additional technical details.
+                "title": "Quick Help Menu",
+                "content": """See the official user guide for more details on using Sidekick.
 
 Main features:
+• Compatibility with Vertiv GXT4/GXT5 UPS devices 
 • Batch operations for multiple devices (Import/Export/Firmware upgrade)
+• UPS stats and reports available with SNMP
 • Single & Batch Network settings modification
 • Easy retrieval of diagnostics files of 1+ devices
 • Simple restart of device web card
 • Simple interface for terminal users
 • Supports RDU101 and IS-UNITY Vertiv UPS devices
 
-Press '>' to continue or '<' to go back."""
+Use your left/right cursor keys or press tab to navigate the help menu."""
             },
             {
                 "title": "(1) Making Network Changes",
@@ -36,7 +37,7 @@ Options available:
 Note that batch operations may take a while to complete due to required restarts."""
             },
             {
-                "title": "(2) Retrieving Diagnostics File(s)",
+                "title": "(2) Retrieving Diagnostics Files",
                 "content": """Select Option 2.
 
 Features:
@@ -50,7 +51,7 @@ Features:
 """
             },
             {
-                "title": "(3) Pushing Firmware Update",
+                "title": "(3) Pushing a firmware update",
                 "content": """Select Option 3.
 
 Features:
@@ -75,7 +76,7 @@ Features:
 """
             },
             {
-                "title": "(5) Performing Batch Operations",
+                "title": "(5) Performing batch operations",
                 "content": """Select Option 5.
 
 Features:
@@ -87,7 +88,19 @@ Set up batch mode by pressing 'E - Edit' and selecting
 either 'Batch (RDU101)' or 'Batch (IS-UNITY)' mode."""
             },
             {
-                "title": "Editing Operation Modes and files",
+                "title": "(6) UPS statistics and reports",
+                "content": """Select Option 6.
+
+Features:
+• With SNMP features enabled on your device(s), you can query devices for meaningful stats.
+• Make sure to import the "snmp_enable" config included in Sidekick's folder to enable SNMP on your devices.
+• Generate reports with a file listing all the IPs of the devices you wish to query.
+• Reports can be generated based on parameters configured by the user in the Report view.
+
+For more information see the README.md file in Sidekick's home folder."""
+            },
+            {
+                "title": "Editing operation modes and files",
                 "content": """Configure the application operating mode.
 
 Available modes:

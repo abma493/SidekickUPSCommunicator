@@ -1,0 +1,37 @@
+AboutScreen {
+    align: center middle;
+    background: $background 60%;
+}
+
+#about-dialog {
+    grid-size: 1;
+    grid-rows: 1fr 1fr 3;
+    width: 40;
+    height: 11;
+    border: thick white;
+    background: darkblue;
+    padding: 1 2;
+}
+
+#about-title {
+    width: 100%;
+    text-align: center;
+    text-style: bold;
+    color: white;
+    padding-bottom: 1;
+}
+
+#about-body {
+    width: 100%;
+    text-align: center;
+    color: white;
+}
+
+#about-close-button {
+    dock: bottom;
+    width: 100%;
+    border: none;
+    background: darkblue;
+    color: white;
+    margin: 0;
+}

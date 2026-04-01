@@ -25,9 +25,9 @@ class Request(Enum):
     SET_THRESHOLD   = auto()
     
 
-# The Driver class serves as the liason between Textual's UI implementations
+# The Driver class serves as the bridge between Textual's UI implementations
 # and the classes that specialize playwright's API to communicate in certain ways
-# with a Vertiv UPS's webpage.
+# with a Vertiv UPS webpage.
 class Driver(): 
 
     def __init__(self):
@@ -62,7 +62,7 @@ class Driver():
         try:
             cfg_file = await http_session(self.ip, self.username, self.password)
         except Exception as e:
-            Logger.log(f"General failure on http_session: {e}")
+            Logger.log(f"Failure on http_session: {e}")
         if cfg_file is not None:
             self.session_dat = cfg_dat_parser(cfg_file)
             
@@ -109,7 +109,13 @@ class Driver():
         Logger.log(f"Attempting to establish a connection with {credentials.get('ip')}")
         web = f'http://{credentials.get("ip")}/web/initialize.htm'
         
-        self.page, self.browser, self.playwright = await setup(web)
+        try:
+            self.page, self.browser, self.playwright = await setup(web)
+        except ApplicationFailure as e:
+            await self.cleanup()
+            comm_queue.put({'app_failure': True, 'message': f"Fatal failure: Playwright failed to initialize.\nRun setup.bat and try again."})
+            sem_UI.release()
+            return False
 
         if self.page is None or self.browser is None or self.playwright is None:
             response = {
@@ -203,7 +209,11 @@ class Driver():
             case Request.RESTART:
                 return await self.restart_and_login()
             case Request.GET_NTWK_OPS:
-                return self.session_dat['Network.IPv4']
+                ntwk_list = self.session_dat['Network.IPv4']
+                ntwk_dict = dict(ntwk_list)
+                if not ntwk_dict.get('Static IP Address'): # if static field empty (bc of DHCP)
+                    ntwk_list = [(k, self.ip if k == 'Static IP Address' else v) for k, v in ntwk_list]
+                return ntwk_list
             case Request.PUSH_CHANGES:
                 return await self.push_changes()
             case Request.HOLD_CHANGES:
@@ -372,6 +382,10 @@ class Driver():
         except Exception as e:
             Logger.log(f"Error navigating to communications tab: {e}")
 
+    # Get the user credentials from the driver class
+    def send_creds(self):
+        return (self.username, self.password)
+    
     # For debugging purposes only 
     # Will output the contents of a data structure
     # type used internally by the driver for changes made by user for device
@@ -386,7 +400,3 @@ class Driver():
             Logger.log(f"Section: {section_name}")
             for key, value in key_value_pairs:
                 Logger.log(f"  {key} = {value}")
-
-    # Get the user credentials from the driver class
-    def send_creds(self):
-        return (self.username, self.password)

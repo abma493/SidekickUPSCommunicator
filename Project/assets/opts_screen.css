@@ -22,6 +22,7 @@ OptionList {
 #title {
     width: 100%;
     text-align: center;
+    border: none;
 }
 
 #options-container {
@@ -34,11 +35,34 @@ OptionList {
 #status-label {
     width: 25;
     height: 3;
+    content-align: left middle;
+    margin: 0;
+}
+
+#info-label {
+    height: 3;
+    content-align: left middle;
+    margin: 0;
+}
+
+#right-buttons {
+    dock: right;
+    width: auto;
+    height: 3;
+    margin-right: 2;
 }
 
 #help-button {
-    dock: right;
-    margin-right: 2;
+    margin: 0;
+}
+
+#about-button {
+    margin: 0;
+}
+
+#options-container Button {
+    height: 3;
+    margin: 0;
 }
 
 Button {

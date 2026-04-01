@@ -3,11 +3,13 @@ from common.common_imports import os
 from .QuitScreen import QuitScreen
 from .ModNetworkScreen import ModNetworkScreen
 from .HelpScreen import HelpScreen
+from .AboutScreen import AboutScreen
 from .EditScreen import EditScreen
 from .NotifMsgScreen import NotifMsgScreen
 from .RetrieveDiagScreen import RetrieveDiagnosticsScreen
 from .FirmwareScreen import FirmwareScreen
 from .RestartScreen import RestartScreen
+from .ReporterScreen import ReporterScreen
 from logger import Logger
 from .BatchScreen import BatchScreen
 import asyncio
@@ -26,12 +28,14 @@ class OptionsScreen(Screen):
         ("3", "push_firmware_update"),
         ("4", "restart_card"),
         ("5", "batch_operations"),
+        ("6", "reporter"),
         ("up", "focus_previous"),
         ("down", "focus_next"),
         ("left", "focus_previous"), 
         ("right", "focus_next"),
     ]
 
+    # constructor of the class called explicitly to set some class vars
     def __init__(self):
         super().__init__()
         self.path_to_batch: str = ""
@@ -57,6 +61,8 @@ class OptionsScreen(Screen):
                 "4. Restart Web Card",
                 Option("", disabled=True),
                 "5. Batch Operations (Import/Export/Firmware)",
+                Option("", disabled=True),
+                "6. Sidekick Reporter",
                 id="opts-list"
             )       
         
@@ -65,7 +71,9 @@ class OptionsScreen(Screen):
                 yield Button("<E - Edit>", id="edit-button")
                 yield Label(f"Mode: Single (Default)", id="status-label")
                 yield Label(f"", id="info-label")
-                yield Button("<?>", id="help-button")
+                with Horizontal(id="right-buttons"):
+                    yield Button("<?>", id="help-button")
+                    yield Button("<i>", id="about-button")
 
 
     def action_focus_next(self):
@@ -105,6 +113,10 @@ class OptionsScreen(Screen):
     def on_help_pressed(self) -> None:
         self.app.push_screen(HelpScreen())
 
+    @on(Button.Pressed, "#about-button")
+    def on_about_pressed(self) -> None:
+        self.app.push_screen(AboutScreen())
+
     # handle editing settings
     def action_edit_settings(self) -> None:
         
@@ -116,7 +128,7 @@ class OptionsScreen(Screen):
             path_firmware: str = result[3]
 
             # validate the batch file
-            test_batch_path = "\\".join([str(os.path.dirname(os.path.abspath(path_batch))), path_batch])
+            test_batch_path = os.path.abspath(path_batch)
             if "Batch" in mode and not path_batch or not os.path.exists(test_batch_path):
                 path_batch = ""
                 # No batch file, revert back to Single Mode
@@ -125,13 +137,13 @@ class OptionsScreen(Screen):
                 self.app.push_screen(NotifMsgScreen(f"Path to batch file does not exist:\n{test_batch_path}"))
                 
             # config file is optional. If None or incorrect, "Import" is disabled
-            test_config_path = "\\".join([str(os.path.dirname(os.path.abspath(path_config))), path_config])
+            test_config_path = os.path.abspath(path_config)
             if path_config and not os.path.exists(test_config_path):
                 path_config = ""
                 self.app.push_screen(NotifMsgScreen(f"Path to config file does not exist:\n{test_config_path}"))
 
             # firmware file is optional. If None or incorrect, "Firmware update" is disabled on both Single/Batch
-            test_firmware_path = "\\".join([str(os.path.dirname(os.path.abspath(path_firmware))), path_firmware])
+            test_firmware_path = os.path.abspath(path_firmware)
             if path_firmware and not os.path.exists(test_firmware_path):
                 path_firmware = ""
                 self.app.push_screen(NotifMsgScreen(f"Path to config file does not exist:\n{test_firmware_path}"))
@@ -160,6 +172,9 @@ class OptionsScreen(Screen):
         else:
             self.app.push_screen(NotifMsgScreen("Please load a valid batch file before accessing this option."))
 
+    async def action_reporter(self) -> None:
+        ip = await send_request("GET_IP")
+        self.app.push_screen(ReporterScreen(ip))
 
     # Used by OptionsList UI component to handle selection on "Enter" by user
     async def on_option_list_option_selected(self, event: OptionList.OptionSelected) -> None:
@@ -172,6 +187,7 @@ class OptionsScreen(Screen):
             4: self.action_push_firmware_update,
             6: self.action_restart_card,
             8: self.action_batch_operations,
+            10: self.action_reporter,
         }
 
         if index in option_actions:

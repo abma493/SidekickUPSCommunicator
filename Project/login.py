@@ -10,28 +10,27 @@ async def setup(web: str):
         browser = await playwright.firefox.launch(headless=True)
         context = await browser.new_context() 
         page = await context.new_page()
-        try:
-            await page.goto(web, timeout=default_timeout)
-        except PlaywrightTimeoutError as e:
-            Logger.log(f"Failed to load page: {e}")
-            await browser.close()
-            await playwright.stop()
-            return None, None, None
-        
-        # Wait for body to ensure page is loaded
-        try:
-            await page.wait_for_selector("body", timeout=default_timeout)
-        except PlaywrightTimeoutError:
-            Logger.log("Page failed to load completely.")
-            await browser.close()
-            await playwright.stop()
-            return None, None, None
-            
-        return page, browser, playwright
-        
     except Exception as e:
-        Logger.log(f"Error during setup: {e}")
+        raise ApplicationFailure(f"Application Failure: {str(e)}")
+    
+    try:
+        await page.goto(web, timeout=default_timeout)
+    except PlaywrightTimeoutError as e:
+        Logger.log(f"Failed to load page: {e}")
+        await browser.close()
+        await playwright.stop()
         return None, None, None
+    
+    # Wait for body to ensure page is loaded
+    try:
+        await page.wait_for_selector("body", timeout=default_timeout)
+    except PlaywrightTimeoutError:
+        Logger.log("Page failed to load completely.")
+        await browser.close()
+        await playwright.stop()
+        return None, None, None
+        
+    return page, browser, playwright
 
 # Login function
 async def login(page: Page, user: str, passwd: str) -> bool:

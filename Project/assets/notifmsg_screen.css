@@ -1,5 +1,6 @@
 NotifMsgScreen {
     align: center middle;
+    background: $background 60%;
 }
 
 Grid {

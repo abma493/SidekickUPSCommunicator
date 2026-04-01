@@ -2,12 +2,13 @@
 
 RetrieveDiagnosticsScreen {
     align: center middle;
+    background: $background 60%;
 }
 
 #prompt {
     padding: 0 1;
     width: 60;
-    height:11;
+    height: 16;
     border: thick white;
     background: darkblue;
 }
@@ -28,7 +29,7 @@ RetrieveDiagnosticsScreen {
 }
 
 #ok-button {
-    margin-top: 3;
+    dock: bottom;
     width: 100%;
-    align: center middle;    
+    align: center middle;
 }

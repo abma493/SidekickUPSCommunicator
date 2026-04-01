@@ -37,6 +37,7 @@
     min-width: 20;
     background: darkblue;
     height: auto;
+    border: none;
 }
 
 /* Style for the batch and config path inputs */
@@ -56,8 +57,7 @@
 
 /* OK button styling */
 #ok-button {
-    /* margin-top: 1; */
-    column-span: 2;
+    dock: bottom;
     min-width: 10;
     width: 10;
     content-align: center middle;
@@ -67,7 +67,7 @@
 /* Custom styling for the modal screen */
 EditScreen {
     align: center middle;
-    background: rgba(0, 0, 0, 0.5);
+    background: $background 60%;
 }
 
 /* Style for button states */

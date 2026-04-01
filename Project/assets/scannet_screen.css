@@ -51,18 +51,16 @@ Screen {
     margin-bottom: 1;
 }
 
-/* Style the progress bar itself */
 #scan-progress > Bar {
-    background: white;
-    border: solid #000080;
+    background: turquoise;
 }
 
 #scan-progress > Bar > .bar--bar {
-    background: #000080;
+    background: yellow;
 }
 
 #scan-progress > Bar > .bar--complete {
-    background: #000080;
+    background: turquoise;
 }
 
 #scan-controls {

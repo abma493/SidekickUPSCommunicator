@@ -2,6 +2,7 @@ from textual.app import App, ComposeResult
 from textual.screen import Screen
 from textual.widgets import Static, ListView, ListItem, Label, ProgressBar, Button
 from textual.containers import Container, Horizontal
+# TODO these imports should change to common imports once this module is mounted onto rest of app
 
 # TODO UI screen for ScanNet
 class ScanNetScreen(Screen):
@@ -10,7 +11,6 @@ class ScanNetScreen(Screen):
 
     def _on_mount(self, event):
         pb = self.query_one(ProgressBar)
-        pb.advance(30)
 
     def compose(self) -> ComposeResult:
         yield Static("Sidekick ScanNet", id="title")
@@ -26,7 +26,6 @@ class ScanNetScreen(Screen):
                 yield Button("Export", id="export-button")
                 yield Button("Parameters", id="params-button")
                 yield Button("Begin", id="scan-button")
-        pass
 
 class ScanNetApp(App):
     CSS_PATH = "../assets/scannet_screen.css"

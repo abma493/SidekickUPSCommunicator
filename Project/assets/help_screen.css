@@ -1,5 +1,6 @@
 HelpScreen {
     align: center middle;
+    background: $background 60%;
 }
 
 #help-dialog {

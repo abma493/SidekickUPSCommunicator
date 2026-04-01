@@ -46,6 +46,15 @@ class ReachHostFailure(Exception):
     def get_err_msg(self) -> str:
         return self.message
 
+# used for handling catastrophic failures requiring application shut down
+class ApplicationFailure(Exception):
+    def __init__(self, message):
+        super().__init__()
+        self.message: str = message
+
+    def get_err_msg(self) -> str:
+        return self.message   
+
 # parse the IPs in the batch file to a list of jobs 
 # A job entry in the list is comprised of an IP and an ID
 # IP is used to navigate to webcard website

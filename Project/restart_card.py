@@ -54,13 +54,13 @@ async def restart_a_card(ip: str = None, username: str = None, password: str = N
                 restart_success = await restart_card(page, ip)
                 return restart_success
             else:
-                Logger.log(f"Login failed for {ip}.")
+                Logger.log(f"[{ip}] Login failed for {ip}.")
                 return False
         except PlaywrightTimeoutError as e:
-            Logger.log(f"Failed to load page: {e}")
+            Logger.log(f"[{ip}] Failed to load page: {e}")
             return False
         except Exception as e:
-            Logger.log(f"Failure on page handling : {e}")
+            Logger.log(f"[{ip}] Failure on page handling : {e}")
             return False
         finally:
             await browser.close()

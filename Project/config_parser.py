@@ -2,6 +2,8 @@ from common.common_imports import *
 import configparser
 from enum import Enum
 
+
+# Pase the configuration file in INI format
 def cfg_dat_parser(file_path: str) -> dict[str, list[tuple[str, str]]]:
     
     with open(file_path, 'r', encoding='utf-8') as f:

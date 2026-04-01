@@ -83,8 +83,7 @@ async def export_config_file(session, ip, s_tok, auth, stat_label=None, prog_bar
                 if download_resp.status == 200:
                     config_data = await download_resp.text()
                     # create export folder
-                    timestamp = datetime.now().strftime("%Y-%m-%d")
-                    export_dir = f"config_exports_{timestamp}"
+                    export_dir = "config_exports"
                     os.makedirs(export_dir, exist_ok=True)
                     # full path here
                     f_path = os.path.join(export_dir, config_filename)

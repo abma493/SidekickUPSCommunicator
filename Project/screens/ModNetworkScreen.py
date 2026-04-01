@@ -38,13 +38,6 @@ class ModNetworkScreen(ModalScreen):
         self.path_to_batch = ""
         self.call_after_refresh(self.load_resources)
 
-    def handle_task_result(self, task):
-        # Check for exceptions
-        if task.cancelled():
-            Logger.log("Network data task was cancelled")
-        elif task.exception():
-            Logger.log(f"Network data task failed: {task.exception()}")
-
     # Pre-populate current Network settings 
     async def load_resources(self):
         try: 

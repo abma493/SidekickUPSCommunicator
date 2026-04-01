@@ -39,7 +39,7 @@ class BaseScreen(Screen):
 
     def compose(self) -> ComposeResult:
         yield Static("Sidekick Communicator", id="title")
-        yield Static("", classes="box")# empty
+        yield Static("", classes="box") # empty
 
         with Vertical(id="main"):
             yield Static("Login", classes="subtitle") 
@@ -130,7 +130,10 @@ class BaseScreen(Screen):
         # Process response
         message = response.get("message")
         
-        if "login" in response:
+        if response.get('app_failure'):
+            self.post_message(LoginMsg(False, message))
+            self.app.exit()
+        elif "login" in response:
             if not response.get("login"):  # bad credentials
                 # Clear input fields
                 self.query_one("#username").value = ""

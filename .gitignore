@@ -57,4 +57,5 @@ logs/
 .env.production.local
 
 # Project specific
-# NONE
+config*.txt
+Project/config_exports/

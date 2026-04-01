@@ -1,3 +1,8 @@
+ModNetworkScreen {
+    align: center middle;
+    background: $background 60%;
+}
+
 Grid {
     border: white;
     background: darkblue;
@@ -64,6 +69,13 @@ ToggleButton {
 #status-label {
     height: 3;
     width: 25;
+    content-align: left middle;
+    margin: 0;
+}
+
+#options Button {
+    height: 3;
+    margin: 0;
 }
 
 #ip-field-container, #subnet-field-container, #gateway-field-container, #csv-field-container {

@@ -6,6 +6,10 @@ from logger import Logger
 class RetrieveDiagnosticsScreen(ModalScreen):
 
     CSS_PATH="../assets/rdiag_screen.css"
+    BINDINGS = [
+        ("up",   "focus_previous"),
+        ("down", "focus_next"),
+    ]
 
     def __init__(self, batch_mode: bool, path_to_batch: str):
         super(RetrieveDiagnosticsScreen, self).__init__()

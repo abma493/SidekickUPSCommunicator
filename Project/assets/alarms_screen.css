@@ -1,0 +1,57 @@
+AlarmsScreen {
+    align: center middle;
+    background: $background 60%;
+}
+
+#alarms-modal {
+    background: darkblue;
+    color: white;
+    border: thick white;
+    width: 60;
+    height: auto;
+    max-height: 90%;
+    padding: 0 1;
+}
+
+#alarms-title {
+    text-style: bold;
+    width: 100%;
+    content-align: center middle;
+    margin-bottom: 1;
+}
+
+#alarms-list {
+    height: auto;
+    max-height: 20;
+    width: 100%;
+}
+
+.alarm-entry {
+    color: yellow;
+    width: 100%;
+    padding: 0 1;
+}
+
+#no-alarms-label {
+    color: white;
+    width: 100%;
+    content-align: center middle;
+    padding: 1 0;
+}
+
+#alarms-buttons {
+    height: 3;
+    width: 100%;
+    align: center middle;
+    margin-top: 1;
+}
+
+#alarms-return-button {
+    width: auto;
+}
+
+Button {
+    border: none;
+    background: darkblue;
+    color: white;
+}

@@ -3,9 +3,19 @@ from common.manpages import help_pages
 
 class HelpScreen(ModalScreen):
     """Multi-page help modal screen."""
-    
+
     CSS_PATH = "../assets/help_screen.css"
-    
+    BINDINGS = [
+        ("left", "prev_page"),
+        ("right", "next_page"),
+    ]
+
+    def action_prev_page(self) -> None:
+        self.on_prev_pressed()
+
+    def action_next_page(self) -> None:
+        self.on_next_pressed()
+
     def __init__(self):
         super().__init__()
         self.current_page = 0
@@ -37,7 +47,6 @@ class HelpScreen(ModalScreen):
         self.app.pop_screen()
     
     def update_content(self) -> None:
-        """Update the help content and navigation buttons."""
         # Update title and content
         self.query_one("#help-title").update(help_pages[self.current_page]["title"])
         self.query_one("#help-content").update(help_pages[self.current_page]["content"])
