@@ -1,0 +1,10 @@
+April 2, 2026 update
+
+* Version 3 has been released, with major UI bug fixes, SNMP query functionality, 
+  and refinement of the quick help guide and a new user guide.
+
+* Cleanup of code has become a primary objective at this time in efforts to improve clarity
+  and transferability of knowledge in how this application works internally.
+
+* ScanNet is an inchoate program feature that has been discussed and undergoing refinement before implementation.
+  Its inclusion into Sidekick has been deferred for a later release.
