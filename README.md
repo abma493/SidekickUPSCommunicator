@@ -16,14 +16,3 @@ Major features update:
 
 Download under the Releases section! Thank you for checking out this tool ! ! !
 
-
-
-
-
-
-
-
-Where is version 2.11, or version 1 for that matter?
-
-Both were developed for internal use only, thus it behooves only those who were issued earlier versions to "upgrade" to this stable release.
-The older releases are far inferior in terms of capabilities, and manifold bugs were fixed in the 3.0 release. 
