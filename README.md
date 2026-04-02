@@ -1,12 +1,13 @@
-As of 6/10:
+April 2026 Update:
 
-Major changes have been set as version 2.1 with some goals on their way for quality assurance and documentation. 
-Application is now able to perform the following:
-* Batch operations (Import / Export / Firmware upgrade)
-* Retrieve diagnostics files .gz (for single device or batch file of devices)
-* Push a firmware upgrade for the currently logged into device
-* Change network settings for this current device
-* Use a CSV file to assign network changes to a batch of devices with associated unique IPs
+Sidekick now supports SNMP reporting and statistics!
 
+Major features update:
 
-For more information please see the most recently dated file under the Notes directory.
+•	Configuring network settings
+•	Performing mass configurations
+•	Extracting diagnostic files
+•	Performing a firmware update 
+•	Performing a webcard restart
+•	Reporting and statistics via SNMP
+
