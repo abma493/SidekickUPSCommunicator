@@ -1,5 +1,3 @@
-
-
 The Sidekick Communicator for Vertiv UPS devices has now received a public release and major update!
 
 This application was created in an effort to enact proactive measures in preventing backup power loss across large network production environments, in addition to automating configurations and collection of UPS data.
@@ -15,6 +13,13 @@ Major features update:
 •	Performing a firmware update 
 •	Performing a webcard restart
 •	Reporting and statistics via SNMP
+
+Download under Releases section! Thank you for checking out this tool ! ! !
+
+
+
+
+
 
 
 
