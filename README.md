@@ -7,12 +7,12 @@ As of version 3.0, Sidekick now supports SNMP reporting and statistics!
 
 Major features update:
 
-•	Configuring network settings
-•	Performing mass configurations
-•	Extracting diagnostic files
-•	Performing a firmware update 
-•	Performing a webcard restart
-•	Reporting and statistics via SNMP
+- Configuring network settings
+- Performing mass configurations
+- Extracting diagnostic files
+- Performing a firmware update
+- Performing a webcard restart
+- Reporting and statistics via SNMP
 
 Download under Releases section! Thank you for checking out this tool ! ! !
 
