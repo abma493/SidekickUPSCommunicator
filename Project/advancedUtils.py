@@ -1,12 +1,14 @@
 import socket
 import subprocess
 from pythonping import ping
-from datetime import datetime
 from pysnmp.hlapi.v3arch.asyncio import *
 from logger import Logger
 import asyncio
 import ipaddress
 
+
+# This is a static dictionary of rekevant SNMP MIB objects for UPS devices (RFC 1628)
+# Specifically alerts thrown by UPS devices.
 UPS_ALARMS = {
     '1.3.6.1.2.1.33.1.6.3.1':  'Replace Battery',
     '1.3.6.1.2.1.33.1.6.3.2':  'On Battery',
@@ -34,7 +36,7 @@ UPS_ALARMS = {
     '1.3.6.1.2.1.33.1.6.3.24': 'Test In Progress',
 }
 
-
+# Check if the UPS device's webcard is reachable via ping
 def is_reachable(ip: str) -> bool:
     try:
         result = subprocess.run(
@@ -49,7 +51,6 @@ def is_reachable(ip: str) -> bool:
 
 # This function retrieves status info from a single vertiv UPS device
 # It uses SNMP to query the device for various status OIDs and prints the results.
-# TODO should return a dict with the status info instead of printing it directly.
 async def ups_status_summary(ip, community_str="sidekick"):
 
     status_OIDs = {
@@ -67,9 +68,8 @@ async def ups_status_summary(ip, community_str="sidekick"):
     snmp_engine = SnmpEngine()
 
     try:
-        Logger.log(f"ups_status_summary: creating transport for {ip}")
+
         transport = await UdpTransportTarget.create((ip, 161), timeout=10, retries=1)
-        Logger.log(f"ups_status_summary: transport created, querying OIDs")
 
         for name, oid in status_OIDs.items():
             try:
@@ -111,7 +111,7 @@ async def ups_status_summary(ip, community_str="sidekick"):
 
 
 # for report loader function
-async def run_report(below_batt: bool    = False,        # parameter by user for filter 
+async def run_report(below_batt: bool    = False,       # parameter by user for filter 
                      batt_threshold: int = 70,          # parameter by user for filter
                      audible_alm: bool   = False,       # parameter by user for filter
                      below_load: bool    = False,       # parameter by user for filter
@@ -195,7 +195,6 @@ async def run_report(below_batt: bool    = False,        # parameter by user for
 
 # This function retrieves the alarms status from a Vertiv UPS device.
 # It uses SNMP to query the device for active alarms and additional alarm details.
-# TODO should return a dict with the alarms info instead of printing it directly.
 async def ups_alarms_stat(ip, community_str:str="sidekick"):
     alm_i = 0
     alms = []
@@ -303,6 +302,8 @@ async def mac_lookup(ip:str, community_str:str="sidekick"):
 # and non-contiguous subnets. It uses ping to check for device availability and 
 # ARP to identify devices by their MAC address.
 #
+# TODO This function is unavailable and incomplete in the current version (3.0)
+#
 # params:
 #       prefix       - The classful address of the network. It must have a
 #                      CIDR notation to complete the syntax (e.g., 10.30.0.0/16)
@@ -317,7 +318,7 @@ async def mac_lookup(ip:str, community_str:str="sidekick"):
 #                      subnet provided with prefix/segmentation. "contiguous" var should
 #                      be set to False if this var is set to 0. 
 #       non_cont_arr - Array of non-contiguous subnets defined in the addressing schema
-#       assume       - By default, scanNet interpolates the network addr of device used to login
+#       assume       - By default, scanNet interpolates the network addr of the device used to login
 #                      to Sidekick. If assume=True, then "prefix" is set to the network addr of
 #                      the user's computer. This may be helpful when the user needs quick info
 #                      while being on-site.
@@ -325,13 +326,13 @@ async def mac_lookup(ip:str, community_str:str="sidekick"):
 #       interval     - Used by ping function to custom set the interval # in-between attempts
 #       OUI          - Used to set the OUI match for the arp request used to ID device found by ping
 async def scanNet(prefix:str | None, 
-            segmentation:int=23, 
-            contiguous:bool=False, 
-            cont_n:int=0, 
-            noncont_arr:list=None, 
-            assume:bool=False, 
-            attempts:int=3, 
-            interval:int=1
+                  segmentation:int=23, 
+                  contiguous:bool=False, 
+                  cont_n:int=0, 
+                  noncont_arr:list=None, 
+                  assume:bool=False, 
+                  attempts:int=3, 
+                  interval:int=1
             ):
     
     if assume: # retrieve network IP from PC's IP. Assumes /16 classful.

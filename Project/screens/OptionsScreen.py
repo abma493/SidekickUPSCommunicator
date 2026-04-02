@@ -90,6 +90,10 @@ class OptionsScreen(Screen):
     def on_quit_pressed(self) -> None:
         self.app.push_screen(QuitScreen())
 
+    @on(Button.Pressed, "#edit-button")
+    def on_edit_pressed(self) -> None:
+        self.action_edit_settings()
+
     # yield the modify network folder screen
     def action_mod_network_settings(self) -> None:
         self.app.push_screen(ModNetworkScreen())

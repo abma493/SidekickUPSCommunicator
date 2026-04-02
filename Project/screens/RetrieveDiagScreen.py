@@ -17,6 +17,12 @@ class RetrieveDiagnosticsScreen(ModalScreen):
         self.batch_mode = batch_mode
         self.path_to_batch = path_to_batch
 
+    def action_focus_next(self) -> None:
+        self.focus_next()
+
+    def action_focus_previous(self) -> None:
+        self.focus_previous()
+
     def on_mount(self):
         self.info_msg: Label = self.query_one("#message")
         self.batch_button: Button = self.query_one("#batch-retrieval-button")
@@ -33,6 +39,12 @@ class RetrieveDiagnosticsScreen(ModalScreen):
             classes="buttons"),
             id="prompt"
         )
+
+    def action_focus_next(self):
+        self.focus_next()
+
+    def action_focus_previous(self):
+        self.focus_previous()
 
     @on(Button.Pressed, "#single-retrieval-button")
     async def on_single_retrieval_pressed(self):
