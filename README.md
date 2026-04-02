@@ -14,7 +14,7 @@ Major features update:
 - Performing a webcard restart
 - Reporting and statistics via SNMP
 
-Download under Releases section! Thank you for checking out this tool ! ! !
+Download under the Releases section! Thank you for checking out this tool ! ! !
 
 
 
